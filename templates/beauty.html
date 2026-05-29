@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{nombre} - Salón de Belleza en Rosario</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; }
+        .hero { background: linear-gradient(135deg, #880e4f 0%, #f8bbd0 100%); color: white; text-align: center; padding: 4rem 2rem; }
+        h1 { font-size: 3rem; }
+        .whatsapp-btn { background: #25d366; color: white; padding: 1rem 2rem; border-radius: 50px; text-decoration: none; display: inline-block; margin-top: 1rem; }
+        .services { padding: 4rem 2rem; background: #f5f5f5; text-align: center; }
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; max-width: 1200px; margin: 2rem auto; }
+        .service-card { background: white; padding: 2rem; border-radius: 15px; }
+        footer { background: #880e4f; color: white; text-align: center; padding: 2rem; }
+        @media (max-width: 768px) { h1 { font-size: 2rem; } }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="container">
+            <h1>{nombre}</h1>
+            <p>Belleza y estética - Rosario</p>
+            <div>⭐ {puntaje} estrellas · {resenas}+ opiniones</div>
+            <a href="https://wa.me/{telefono}" class="whatsapp-btn">📱 Turnos</a>
+        </div>
+    </section>
+    <section class="services">
+        <h2>Nuestros Servicios</h2>
+        <div class="services-grid">
+            <div class="service-card"><h3>Corte y Peinado</h3></div>
+            <div class="service-card"><h3>Coloración</h3></div>
+            <div class="service-card"><h3>Maquillaje</h3></div>
+            <div class="service-card"><h3>Tratamientos Faciales</h3></div>
+        </div>
+    </section>
+    <footer><p>{nombre} - {direccion}</p><p>© {year}</p></footer>
+</body>
+</html>

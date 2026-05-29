@@ -1,0 +1,116 @@
+{
+  "queue": [
+    {
+      "lead": {
+        "nombre": "La Camorra",
+        "categoria": "restaurante",
+        "direccion": "Zeballos 2017",
+        "telefono": "5493414215226",
+        "whatsapp": "https://wa.me/5493414215226",
+        "website": "",
+        "source": "OSM",
+        "status": "HIGH_PRIORITY"
+      },
+      "mensaje": "Hola buenas! Soy Agustin. Vi su negocio en Google Maps y me llamó la atención lo prolijo que se ve todo. Se que va a sonar medio random, pero armé una web bastante distinta a las típicas inspirada en ustedes. Te la puedo mostrar?",
+      "created_at": "2026-05-21T21:25:29.230915"
+    },
+    {
+      "lead": {
+        "nombre": "Sushi Premium",
+        "categoria": "restaurante",
+        "direccion": "Zeballos 2019",
+        "telefono": "5493414210243",
+        "whatsapp": "https://wa.me/5493414210243",
+        "website": "",
+        "source": "OSM",
+        "status": "HIGH_PRIORITY"
+      },
+      "mensaje": "Buenas! Soy Agustin y hago sitios web para negocios locales. Vi su perfil y se nota que hay bastante laburo detrás del lugar. Se que va a sonar medio random, pero les armé una web desde cero inspirada en eso. Te molestaría verla?",
+      "created_at": "2026-05-21T21:25:29.230924"
+    },
+    {
+      "lead": {
+        "nombre": "Ajoarriero",
+        "categoria": "restaurante",
+        "direccion": " 301",
+        "telefono": "54341423422",
+        "whatsapp": "https://wa.me/54341423422",
+        "website": "",
+        "source": "OSM",
+        "status": "HIGH_PRIORITY"
+      },
+      "mensaje": "Hola! Soy Agustin, desarrollador web. Vi su negocio online y hay algo en la estética del negocio que destaca bastante. Se que va a sonar medio raro jajaj, pero me dieron ganas de hacerles una web personalizada. Te la puedo mostrar?",
+      "created_at": "2026-05-21T21:25:29.230928"
+    },
+    {
+      "lead": {
+        "nombre": "Moe's Bar",
+        "categoria": "restaurante",
+        "direccion": "Avenida José de San Martín 727",
+        "telefono": "543476435360",
+        "whatsapp": "https://wa.me/543476435360",
+        "website": "",
+        "source": "OSM",
+        "status": "HIGH_PRIORITY"
+      },
+      "mensaje": "Hola buenas! Soy Agustin y hago páginas web. Encontré su negocio en Google Maps y me llamó la atención la cantidad de reseñas buenas que tienen. Se que va a sonar raro, pero terminé armando una web desde cero inspirada en el negocio. Te la puedo mostrar?",
+      "created_at": "2026-05-21T21:25:29.230931"
+    },
+    {
+      "lead": {
+        "nombre": "Kary Stilista",
+        "categoria": "salon belleza estetica",
+        "direccion": "Fray Mamerto Esquiú 1642",
+        "telefono": "5493413066564",
+        "whatsapp": "https://wa.me/5493413066564",
+        "website": "",
+        "source": "OSM",
+        "status": "HIGH_PRIORITY"
+      },
+      "mensaje": "Hola! Cómo va? Soy Agustin. Encontré su negocio en internet y me gustó mucho cómo hablan los clientes de ustedes. Se que va a sonar raro, pero me inspiró a hacerles una web moderna basada en el local. Te la puedo pasar?",
+      "created_at": "2026-05-21T21:25:29.230934"
+    },
+    {
+      "lead": {
+        "nombre": "Vanesa Peinados",
+        "categoria": "salon belleza estetica",
+        "direccion": "Hipólito Yrigoyen 689",
+        "telefono": "5493413062092",
+        "whatsapp": "https://wa.me/5493413062092",
+        "website": "",
+        "source": "OSM",
+        "status": "HIGH_PRIORITY"
+      },
+      "mensaje": "Hola! Cómo va? Soy Agustin. Encontré su negocio en internet y me gustó mucho cómo hablan los clientes de ustedes. Se que va a sonar raro, pero me inspiró a hacerles una web moderna basada en el local. Te la puedo pasar?",
+      "created_at": "2026-05-21T21:25:29.230937"
+    },
+    {
+      "lead": {
+        "nombre": "Kazumi",
+        "categoria": "salon belleza estetica",
+        "direccion": "Candelaria",
+        "telefono": "5493416531174",
+        "whatsapp": "https://wa.me/5493416531174",
+        "website": "",
+        "source": "OSM",
+        "status": "HIGH_PRIORITY"
+      },
+      "mensaje": "Buenas! Soy Agustin. Encontré su local buscando negocios de la zona y me gustó mucho la imagen que transmite el lugar. Se que va a sonar raro viniendo de alguien que no conocen, pero hice una web basada en eso. Te interesaría verla?",
+      "created_at": "2026-05-21T21:25:29.230939"
+    },
+    {
+      "lead": {
+        "nombre": "Rocío Nails&Spa",
+        "categoria": "salon belleza estetica",
+        "direccion": "Candelaria 1046",
+        "telefono": "5493415832118",
+        "whatsapp": "https://wa.me/5493415832118",
+        "website": "",
+        "source": "OSM",
+        "status": "HIGH_PRIORITY"
+      },
+      "mensaje": "Hola! Cómo va? Soy Agustin. Encontré su negocio en internet y me gustó mucho cómo hablan los clientes de ustedes. Se que va a sonar raro, pero me inspiró a hacerles una web moderna basada en el local. Te la puedo pasar?",
+      "created_at": "2026-05-21T21:25:29.230941"
+    }
+  ]
+}

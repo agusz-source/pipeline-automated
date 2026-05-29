@@ -1,0 +1,85 @@
+{
+  "leads": [
+    {
+      "nombre": "La Camorra",
+      "categoria": "restaurante",
+      "direccion": "Zeballos 2017",
+      "telefono": "5493414215226",
+      "whatsapp": "https://wa.me/5493414215226",
+      "website": "",
+      "source": "OSM",
+      "status": "HIGH_PRIORITY"
+    },
+    {
+      "nombre": "Sushi Premium",
+      "categoria": "restaurante",
+      "direccion": "Zeballos 2019",
+      "telefono": "5493414210243",
+      "whatsapp": "https://wa.me/5493414210243",
+      "website": "",
+      "source": "OSM",
+      "status": "HIGH_PRIORITY"
+    },
+    {
+      "nombre": "Ajoarriero",
+      "categoria": "restaurante",
+      "direccion": " 301",
+      "telefono": "54341423422",
+      "whatsapp": "https://wa.me/54341423422",
+      "website": "",
+      "source": "OSM",
+      "status": "HIGH_PRIORITY"
+    },
+    {
+      "nombre": "Moe's Bar",
+      "categoria": "restaurante",
+      "direccion": "Avenida José de San Martín 727",
+      "telefono": "543476435360",
+      "whatsapp": "https://wa.me/543476435360",
+      "website": "",
+      "source": "OSM",
+      "status": "HIGH_PRIORITY"
+    },
+    {
+      "nombre": "Kary Stilista",
+      "categoria": "salon belleza estetica",
+      "direccion": "Fray Mamerto Esquiú 1642",
+      "telefono": "5493413066564",
+      "whatsapp": "https://wa.me/5493413066564",
+      "website": "",
+      "source": "OSM",
+      "status": "HIGH_PRIORITY"
+    },
+    {
+      "nombre": "Vanesa Peinados",
+      "categoria": "salon belleza estetica",
+      "direccion": "Hipólito Yrigoyen 689",
+      "telefono": "5493413062092",
+      "whatsapp": "https://wa.me/5493413062092",
+      "website": "",
+      "source": "OSM",
+      "status": "HIGH_PRIORITY"
+    },
+    {
+      "nombre": "Kazumi",
+      "categoria": "salon belleza estetica",
+      "direccion": "Candelaria",
+      "telefono": "5493416531174",
+      "whatsapp": "https://wa.me/5493416531174",
+      "website": "",
+      "source": "OSM",
+      "status": "HIGH_PRIORITY"
+    },
+    {
+      "nombre": "Rocío Nails&Spa",
+      "categoria": "salon belleza estetica",
+      "direccion": "Candelaria 1046",
+      "telefono": "5493415832118",
+      "whatsapp": "https://wa.me/5493415832118",
+      "website": "",
+      "source": "OSM",
+      "status": "HIGH_PRIORITY"
+    }
+  ],
+  "total": 8
+}
