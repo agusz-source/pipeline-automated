@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Binario Websites — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">B</div>
+            <span class="logo-text">binario<br>websites</span>
+        </div>
+        <nav class="nav">
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <i class="fas fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-page="leads">
+                <i class="fas fa-users"></i>
+                <span>Leads</span>
+            </a>
+            <a href="#" class="nav-item" data-page="analytics">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="#" class="nav-item" data-page="deployments">
+                <i class="fas fa-rocket"></i>
+                <span>Deployments</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="system-status">
+                <span class="status-dot online"></span>
+                <span>System Online</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="executive-summary" id="executive-summary">
+                    <span class="summary-badge">Resumen</span>
+                    <span class="summary-text">Cargando...</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="update-info">
+                    <i class="fas fa-sync-alt" id="refresh-btn"></i>
+                    <span id="update-time">--:--</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Page -->
+        <div id="page-dashboard" class="page active">
+            <!-- KPI Grid -->
+            <div class="kpi-grid" id="kpi-grid"></div>
+
+            <!-- Funnel -->
+            <div class="card funnel-card">
+                <div class="card-header">
+                    <h3>Conversion Funnel</h3>
+                    <p class="card-sub">Stage-to-stage performance</p>
+                </div>
+                <div class="funnel-container" id="funnel"></div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>Activity Timeline</h3>
+                        <p class="card-sub">Last 30 days</p>
+                    </div>
+                    <canvas id="activity-chart"></canvas>
+                </div>
+                <div class="card categories-card">
+                    <div class="card-header">
+                        <h3>Top Categories</h3>
+                        <p class="card-sub">By conversion rate</p>
+                    </div>
+                    <div id="categories-list"></div>
+                </div>
+            </div>
+
+            <!-- Recent Deployments -->
+            <div class="card deployments-card">
+                <div class="card-header">
+                    <h3>Recent Deployments</h3>
+                    <p class="card-sub">Last activity feed</p>
+                </div>
+                <div id="deployments-timeline" class="timeline"></div>
+            </div>
+        </div>
+
+        <!-- Leads Page -->
+        <div id="page-leads" class="page">
+            <div class="card full-width">
+                <div class="card-header">
+                    <h3>All Leads</h3>
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="search-leads" placeholder="Search leads...">
+                        </div>
+                        <select id="status-filter" class="filter-select">
+                            <option value="all">All status</option>
+                            <option value="pending">Pending</option>
+                            <option value="sent">Sent</option>
+                            <option value="website">Website</option>
+                            <option value="deployed">Deployed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="leads-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="nombre">Business <i class="fas fa-sort"></i></th>
+                                <th data-sort="categoria">Category <i class="fas fa-sort"></i></th>
+                                <th>Phone</th>
+                                <th data-sort="enviado">Status <i class="fas fa-sort"></i></th>
+                                <th>Website</th>
+                                <th>Deploy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leads-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="leads-pagination"></div>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div id="page-analytics" class="page">
+            <div class="card full-width">
+                <div class="card-header">
+                    <h3>Category Performance</h3>
+                </div>
+                <div class="analytics-grid" id="analytics-grid"></div>
+            </div>
+        </div>
+
+        <!-- Deployments Page -->
+        <div id="page-deployments" class="page">
+            <div class="card full-width">
+                <div class="card-header">
+                    <h3>All Deployments</h3>
+                </div>
+                <div class="timeline full" id="deployments-full"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>

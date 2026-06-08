@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeadGen Rosario — Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>LEADGEN ROSARIO</h1>
+            <div class="subheader">CUARTO DE GUERRA</div>
+            <div class="timestamp" id="timestamp">Cargando...</div>
+        </div>
+
+        <!-- Navegación -->
+        <div class="nav">
+            <button class="nav-btn active" data-page="principal">PRINCIPAL</button>
+            <button class="nav-btn" data-page="leads">LEADS</button>
+            <button class="nav-btn" data-page="pendientes">PENDIENTES</button>
+            <button class="nav-btn" data-page="convertidos">CONVERTIDOS</button>
+            <button class="nav-btn" data-page="categorias">CATEGORÍAS</button>
+        </div>
+
+        <!-- Página Principal -->
+        <div id="page-principal" class="page active">
+            <div class="stats-grid" id="stats-grid"></div>
+            <div class="progress-section">
+                <h2>PROGRESO GENERAL</h2>
+                <div id="progress-bars"></div>
+            </div>
+            <div class="deployments-section">
+                <h2>ÚLTIMOS DEPLOYMENTS</h2>
+                <div id="deployments-list"></div>
+            </div>
+        </div>
+
+        <!-- Página Leads -->
+        <div id="page-leads" class="page">
+            <div class="table-container">
+                <table id="leads-table">
+                    <thead>
+                        <tr><th>NEGOCIO</th><th>CATEGORÍA</th><th>TELÉFONO</th><th>ENV</th><th>WEB</th><th>LINK</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Página Pendientes -->
+        <div id="page-pendientes" class="page">
+            <div class="table-container">
+                <table id="pendientes-table">
+                    <thead><tr><th>NEGOCIO</th><th>CATEGORÍA</th><th>TELÉFONO</th><th>ESTADO</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Página Convertidos -->
+        <div id="page-convertidos" class="page">
+            <div class="table-container">
+                <table id="convertidos-table">
+                    <thead><tr><th>NEGOCIO</th><th>URL</th><th>FECHA</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Página Categorías -->
+        <div id="page-categorias" class="page">
+            <div class="chart-container">
+                <canvas id="categorias-chart"></canvas>
+            </div>
+            <div class="table-container">
+                <table id="categorias-table">
+                    <thead><tr><th>CATEGORÍA</th><th>TOTAL</th><th>ENVIADOS</th><th>CONVERTIDOS</th><th>TASA</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span id="footer-timestamp">—</span>
+            <span class="refresh-note">Actualización automática cada 10 segundos</span>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

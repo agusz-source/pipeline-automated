@@ -1,33 +1,37 @@
 #!/bin/bash
-cd ~/leadgen_rosario
-source venv/bin/activate
+
+# Ruta fija al proyecto
+PROJECT_DIR="/home/aguszz/pipeline-automated"
+cd "$PROJECT_DIR"
+
+# Activar virtual env si existe
+if [ -f "venv/bin/activate" ]; then
+    source venv/bin/activate
+fi
+
+DATASET="dataset.json"
+STATUS="data/estado.csv"
 
 echo "🚀 LEADGEN ROSARIO"
-echo "1) Pipeline completo"
-echo "2) Leer datasets"
-echo "3) Analizar leads"
-echo "4) Generar mensajes"
-echo "5) Enviar mensajes"
-echo "6) Registrar respondedores"
-echo "7) Generar websites (Claude Code)"
-echo "8) Desplegar (GitHub + Netlify)"
-echo "9) Enviar links a clientes"
-echo "10) Ver estado"
-echo "11) Salir"
+echo "1) Discovery (leer dataset)"
+echo "2) Enviar mensajes (outreach)"
+echo "3) Generar websites"
+echo "4) Desplegar (GitHub + Netlify)"
+echo "5) Enviar links a clientes"
+echo "6) Pipeline completo"
+echo "7) Ver estado"
+echo "8) Salir"
 echo ""
 read -p "Opción: " opt
 
 case $opt in
-    1) python main.py --full ;;
-    2) python main.py --discover ;;
-    3) python main.py --analyze ;;
-    4) python main.py --generate-msgs ;;
-    5) python main.py --send ;;
-    6) python main.py --responders ;;
-    7) python main.py --generate-webs ;;
-    8) python main.py --deploy ;;
-    9) python main.py --send-links ;;
-    10) python main.py --status ;;
-    11) exit 0 ;;
+    1) python3 "$PROJECT_DIR/main.py" --discover "$DATASET" ;;
+    2) python3 "$PROJECT_DIR/main.py" --send "$DATASET" "$STATUS" ;;
+    3) python3 "$PROJECT_DIR/main.py" --generate-webs "$STATUS" ;;
+    4) python3 "$PROJECT_DIR/main.py" --deploy "$STATUS" ;;
+    5) python3 "$PROJECT_DIR/main.py" --send-links "$STATUS" ;;
+    6) python3 "$PROJECT_DIR/main.py" --full "$DATASET" "$STATUS" ;;
+    7) python3 "$PROJECT_DIR/main.py" --status "$STATUS" ;;
+    8) exit 0 ;;
     *) echo "Opción inválida" ;;
 esac
