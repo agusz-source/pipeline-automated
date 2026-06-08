@@ -2,57 +2,63 @@
 # modules/deploy.py - Despliegue a GitHub y Netlify
 
 import subprocess
-import json
+import csv
 from pathlib import Path
 from colorama import Fore
 from config import config
 
+
 class Deployer:
     def __init__(self):
-        self.github_user = config.GITHUB_USERNAME
+        self.github_user = config.GITHUB_USERNAME if hasattr(config, 'GITHUB_USERNAME') else ""
     
     def deploy_a_github(self, project_path, nombre):
+        """Sube el proyecto a GitHub"""
         repo_name = f"leadgen-{nombre.lower().replace(' ', '-')}"
         repo_name = ''.join(c for c in repo_name if c.isalnum() or c == '-')
         
         print(f"{Fore.CYAN}📤 Subiendo a GitHub: {repo_name}")
         
-        commands = f"""
-        cd {project_path}
-        git init
-        git add .
-        git commit -m "Initial commit - LeadGen Rosario"
-        gh repo create {repo_name} --public --source=. --push --yes
-        """
-        
+        commands = [
+            ["git", "init"],
+            ["git", "add", "."],
+            ["git", "commit", "-m", "Initial commit - LeadGen Rosario"],
+            ["gh", "repo", "create", repo_name, "--public", "--source=.", "--push", "--yes"],
+        ]
+
         try:
-            result = subprocess.run(commands, shell=True, capture_output=True, text=True)
-            if result.returncode == 0:
+            result = None
+            for cmd in commands:
+                result = subprocess.run(cmd, capture_output=True, text=True, cwd=project_path)
+                if result.returncode != 0:
+                    break
+            if result and result.returncode == 0 and self.github_user:
                 url = f"https://github.com/{self.github_user}/{repo_name}"
                 print(f"{Fore.GREEN}✅ Repositorio: {url}")
                 return url
             else:
-                print(f"{Fore.RED}❌ Error: {result.stderr}")
+                print(f"{Fore.YELLOW}⚠️ No se pudo subir a GitHub (gh no configurado)")
                 return ""
         except Exception as e:
             print(f"{Fore.RED}❌ Error: {e}")
             return ""
     
     def deploy_a_netlify(self, project_path, nombre):
+        """Despliega a Netlify"""
         print(f"{Fore.CYAN}🚀 Desplegando a Netlify...")
         
         try:
             result = subprocess.run(
-                f"cd {project_path} && netlify deploy --prod --dir=.",
-                shell=True,
+                ["netlify", "deploy", "--prod", "--dir=."],
                 capture_output=True,
-                text=True
+                text=True,
+                cwd=project_path
             )
             
             output = result.stdout
             url = ""
             for line in output.split('\n'):
-                if 'Website URL:' in line or 'https://' in line and '.netlify.app' in line:
+                if 'Website URL:' in line or ('.netlify.app' in line and 'https://' in line):
                     parts = line.split()
                     for part in parts:
                         if 'netlify.app' in part:
@@ -68,40 +74,35 @@ class Deployer:
             print(f"{Fore.RED}❌ Error: {e}")
             return ""
     
-    def desplegar_interesados(self):
-        with open(config.INTERESADOS_FILE, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            interesados = data.get("interesados", [])
+    def desplegar_interesados(self, status_file):
+        """Lee el CSV y despliega los websites generados"""
+        if not Path(status_file).exists():
+            print(f"{Fore.RED}❌ Archivo no encontrado: {status_file}")
+            return
         
-        for inter in interesados:
-            lead = inter.get("lead_data")
-            project_path = inter.get("project_path")
-            
-            if lead and project_path and not inter.get("live_url"):
-                repo_url = self.deploy_a_github(project_path, lead["nombre"])
-                live_url = self.deploy_a_netlify(project_path, lead["nombre"])
-                inter["repo_url"] = repo_url
-                inter["live_url"] = live_url
+        # Leer CSV
+        with open(status_file, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
         
-        with open(config.INTERESADOS_FILE, 'w', encoding='utf-8') as f:
-            json.dump({"interesados": interesados}, f, indent=2, ensure_ascii=False)
+        actualizados = 0
+        for row in rows:
+            if row.get('project_path') and not row.get('live_url'):
+                project_path = Path(row['project_path'])
+                nombre = row['nombre']
+                
+                if project_path.exists():
+                    repo_url = self.deploy_a_github(project_path, nombre)
+                    live_url = self.deploy_a_netlify(project_path, nombre)
+                    
+                    row['live_url'] = live_url
+                    actualizados += 1
         
-        print(f"{Fore.GREEN}✅ Despliegue completado")
-    
-    def enviar_links(self, whatsapp_sender):
-        with open(config.INTERESADOS_FILE, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            interesados = data.get("interesados", [])
+        # Guardar CSV actualizado
+        if actualizados > 0:
+            with open(status_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.DictWriter(f, fieldnames=reader.fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
         
-        for inter in interesados:
-            lead = inter.get("lead_data")
-            url = inter.get("live_url")
-            telefono = inter.get("telefono")
-            
-            if url and telefono:
-                mensaje = f"¡Listo! Tu web está online: {url}"
-                whatsapp_sender.enviar(telefono, mensaje, lead.get("nombre", "cliente"))
-                if inter != interesados[-1]:
-                    time.sleep(config.INTERVALO_SEGUNDOS)
-
-import time
+        print(f"{Fore.GREEN}✅ Despliegue completado: {actualizados} sitios")
