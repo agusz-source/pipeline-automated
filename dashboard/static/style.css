@@ -796,6 +796,38 @@ body {
     }
 }
 
+/* Stage-specific KPI icon colors */
+.kpi-card[data-stage="total"] .kpi-icon {
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+}
+.kpi-card[data-stage="sent"] .kpi-icon {
+    color: var(--status-sent);
+    background: rgba(59, 130, 246, 0.12);
+}
+.kpi-card[data-stage="website"] .kpi-icon {
+    color: var(--status-website);
+    background: rgba(139, 92, 246, 0.12);
+}
+.kpi-card[data-stage="deployed"] .kpi-icon {
+    color: var(--status-deployed);
+    background: var(--accent-soft);
+}
+
+/* KPI sub text (replaces fake delta row) */
+.kpi-sub {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: var(--spacing-sm);
+    line-height: 1.4;
+}
+
+/* Funnel stage per-step colors */
+.funnel-stage[data-stage="total"] .value   { color: var(--text-secondary); }
+.funnel-stage[data-stage="sent"] .value    { color: var(--status-sent); }
+.funnel-stage[data-stage="website"] .value { color: var(--status-website); }
+.funnel-stage[data-stage="deployed"] .value{ color: var(--status-deployed); }
+
 /* Tooltip */
 [data-tooltip] {
     position: relative;

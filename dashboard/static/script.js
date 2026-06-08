@@ -40,28 +40,47 @@ function animateValue(element, start, end, duration = 800) {
 function renderKPIs(stats) {
     const container = document.getElementById('kpi-grid');
     const cards = [
-        { label: 'Total Leads', value: stats.total, delta: '+12.3%', icon: 'fa-users', trend: 'up' },
-        { label: 'Sent', value: stats.enviados, delta: `+${Math.round(stats.tasa_envio)}%`, icon: 'fa-paper-plane', trend: 'up' },
-        { label: 'Websites Created', value: stats.con_web, delta: `+${Math.round(stats.tasa_web)}%`, icon: 'fa-code', trend: 'up' },
-        { label: 'Active Deploys', value: stats.con_link, delta: `+${Math.round(stats.tasa_deploy)}%`, icon: 'fa-rocket', trend: 'up' }
+        {
+            label: 'Leads totales',
+            value: stats.total,
+            sub: 'en el dataset',
+            icon: 'fa-database',
+            stage: 'total'
+        },
+        {
+            label: 'Mensajes enviados',
+            value: stats.enviados,
+            sub: `${stats.tasa_envio}% del total`,
+            icon: 'fa-comment-dots',
+            stage: 'sent'
+        },
+        {
+            label: 'Webs generadas',
+            value: stats.con_web,
+            sub: `${stats.tasa_web}% de contactados`,
+            icon: 'fa-code',
+            stage: 'website'
+        },
+        {
+            label: 'Sitios publicados',
+            value: stats.con_link,
+            sub: `${stats.tasa_deploy}% de webs`,
+            icon: 'fa-globe',
+            stage: 'deployed'
+        }
     ];
-    
+
     container.innerHTML = cards.map(card => `
-        <div class="kpi-card" data-tooltip="${card.label} total">
+        <div class="kpi-card" data-stage="${card.stage}">
             <div class="kpi-header">
                 <span>${card.label}</span>
                 <div class="kpi-icon"><i class="fas ${card.icon}"></i></div>
             </div>
             <div class="kpi-value" data-value="${card.value}">0</div>
-            <div class="kpi-delta ${card.trend === 'up' ? 'positive' : 'negative'}">
-                <i class="fas fa-arrow-${card.trend}"></i>
-                <span>${card.delta}</span>
-                <span class="kpi-trend">vs last period</span>
-            </div>
+            <div class="kpi-sub">${card.sub}</div>
         </div>
     `).join('');
-    
-    // Animate values
+
     const valueElements = document.querySelectorAll('.kpi-value');
     const values = [stats.total, stats.enviados, stats.con_web, stats.con_link];
     valueElements.forEach((el, i) => {
@@ -73,22 +92,21 @@ function renderKPIs(stats) {
 function renderFunnel(stats) {
     const container = document.getElementById('funnel');
     const stages = [
-        { label: 'Leads', value: stats.total, loss: 0 },
-        { label: 'Sent', value: stats.enviados, loss: stats.total - stats.enviados },
-        { label: 'Website Created', value: stats.con_web, loss: stats.enviados - stats.con_web },
-        { label: 'Deployed', value: stats.con_link, loss: stats.con_web - stats.con_link }
+        { label: 'Leads',        value: stats.total,    stage: 'total',    loss: null },
+        { label: 'Enviados',     value: stats.enviados, stage: 'sent',     loss: stats.total - stats.enviados },
+        { label: 'Web generada', value: stats.con_web,  stage: 'website',  loss: stats.enviados - stats.con_web },
+        { label: 'Publicados',   value: stats.con_link, stage: 'deployed', loss: stats.con_web - stats.con_link }
     ];
-    
+
     container.innerHTML = stages.map((stage, i) => `
-        ${i > 0 ? '<div class="funnel-arrow"><i class="fas fa-arrow-down"></i></div>' : ''}
-        <div class="funnel-stage">
+        ${i > 0 ? '<div class="funnel-arrow"><i class="fas fa-arrow-right"></i></div>' : ''}
+        <div class="funnel-stage" data-stage="${stage.stage}">
             <div class="value" data-value="${stage.value}">0</div>
             <div class="label">${stage.label}</div>
-            ${stage.loss > 0 ? `<div class="funnel-loss">-${stage.loss} lost</div>` : ''}
+            ${stage.loss !== null && stage.loss > 0 ? `<div class="funnel-loss">-${stage.loss} no pasaron</div>` : ''}
         </div>
     `).join('');
-    
-    // Animate funnel values
+
     const funnelValues = document.querySelectorAll('.funnel-stage .value');
     const values = stages.map(s => s.value);
     funnelValues.forEach((el, i) => {
@@ -123,12 +141,12 @@ function renderCategories(categorias) {
 function renderDeployments(leads, limit = 10) {
     const deployed = leads.filter(l => l.live_url).slice(0, limit);
     const container = document.getElementById('deployments-timeline');
-    
+
     if (deployed.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No deployments yet</p></div>';
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No hay sitios publicados todavia</p></div>';
         return;
     }
-    
+
     container.innerHTML = deployed.map(d => `
         <div class="timeline-item">
             <div class="timeline-left">
@@ -139,8 +157,8 @@ function renderDeployments(leads, limit = 10) {
                 </div>
             </div>
             <div class="timeline-right">
-                <div class="timeline-date">${new Date(d.fecha_envio_links || d.fecha_envio || Date.now()).toLocaleDateString()}</div>
-                <div class="timeline-time">${Math.floor(Math.random() * 24)}h ago</div>
+                <div class="timeline-date">${formatDate(d.fecha_envio_links || d.fecha_envio)}</div>
+                <div class="timeline-time badge badge-deployed">Live</div>
             </div>
         </div>
     `).join('');
@@ -150,12 +168,12 @@ function renderDeployments(leads, limit = 10) {
 function renderFullDeployments(leads) {
     const deployed = leads.filter(l => l.live_url);
     const container = document.getElementById('deployments-full');
-    
+
     if (deployed.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No deployments yet</p></div>';
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No hay sitios publicados todavia</p></div>';
         return;
     }
-    
+
     container.innerHTML = deployed.map(d => `
         <div class="timeline-item">
             <div class="timeline-left">
@@ -166,7 +184,7 @@ function renderFullDeployments(leads) {
                 </div>
             </div>
             <div class="timeline-right">
-                <div class="timeline-date">${new Date(d.fecha_envio_links || d.fecha_envio || Date.now()).toLocaleDateString()}</div>
+                <div class="timeline-date">${formatDate(d.fecha_envio_links || d.fecha_envio)}</div>
                 <div class="timeline-time badge badge-deployed">Live</div>
             </div>
         </div>
@@ -224,24 +242,24 @@ function renderActivityChart(leads) {
 function renderAnalytics(categorias) {
     const container = document.getElementById('analytics-grid');
     const total = categorias.reduce((sum, c) => sum + c.total, 0);
-    
+
     container.innerHTML = categorias.map(cat => `
         <div class="analytics-card">
             <div class="analytics-header">
                 <strong>${cat.nombre}</strong>
-                <span class="badge ${cat.tasa_envio > 50 ? 'badge-deployed' : 'badge-pending'}">${cat.tasa_envio}% conv</span>
+                <span class="badge ${cat.tasa_envio > 50 ? 'badge-deployed' : 'badge-pending'}">${cat.tasa_envio}% enviados</span>
             </div>
             <div class="category-bar-container" style="margin: 12px 0;">
                 <div class="category-bar" style="width: 0%" data-width="${(cat.total / total) * 100}"></div>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-tertiary);">
-                <span>📊 ${cat.total} leads</span>
-                <span>✉️ ${cat.enviados} sent</span>
-                <span>🚀 ${cat.convertidos} deployed</span>
+                <span>${cat.total} leads</span>
+                <span>${cat.enviados} enviados</span>
+                <span>${cat.convertidos} publicados</span>
             </div>
         </div>
     `).join('');
-    
+
     setTimeout(() => {
         document.querySelectorAll('#analytics-grid .category-bar').forEach(bar => {
             bar.style.width = bar.dataset.width + '%';
@@ -335,6 +353,18 @@ function escapeHtml(str) {
     });
 }
 
+// Format a date string as dd mmm yyyy (es-AR locale)
+function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr.slice(0, 10) || '—';
+        return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch {
+        return '—';
+    }
+}
+
 // Update everything from API
 async function updateDashboard() {
     try {
@@ -361,7 +391,7 @@ async function updateDashboard() {
         
         const totalLeads = stats.total;
         const conversionRate = stats.tasa_deploy;
-        executiveSummarySpan.textContent = `${totalLeads} total leads · ${conversionRate}% conversion rate · ${stats.con_link} active sites`;
+        executiveSummarySpan.textContent = `${totalLeads} leads · ${conversionRate}% conversion · ${stats.con_link} sitios activos`;
         
     } catch (error) {
         console.error('Error fetching data:', error);
