@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JRrosario Amoblamientos y Sanitarios | Rosario</title>
+  <meta name="description" content="Tienda de equipos de baño en Rosario. Sanitarios, griferías, vanitorios, mamparas y accesorios. Molina 2075.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --terracotta:    #BF6846;
+      --terracotta-lt: #CF7E5E;
+      --terracotta-pl: #EDD5C5;
+      --cream:         #F4EDE2;
+      --dark:          #1A1612;
+      --dark-2:        #2C2520;
+      --mid:           #7A6E65;
+      --sand:          #E4D7C5;
+      --sand-dk:       #CFC0AB;
+      --white:         #FAFAF8;
+
+      --serif: 'Playfair Display', Georgia, serif;
+      --sans:  'DM Sans', system-ui, sans-serif;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--cream);
+      color: var(--dark);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; }
+
+    /* ==========================
+       NAV
+    ========================== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.1rem 3rem;
+      background: rgba(244, 237, 226, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--sand);
+      transition: padding 0.3s;
+    }
+
+    nav.scrolled { padding: 0.75rem 3rem; }
+
+    .nav-logo {
+      font-family: var(--serif);
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      color: var(--dark);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.82rem;
+      font-weight: 400;
+      color: var(--mid);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--dark); }
+
+    .nav-cta {
+      background: var(--terracotta) !important;
+      color: var(--white) !important;
+      padding: 0.5rem 1.25rem !important;
+      border-radius: 2px;
+      font-size: 0.8rem !important;
+      font-weight: 500 !important;
+      transition: background 0.2s !important;
+    }
+
+    .nav-cta:hover { background: var(--dark) !important; }
+
+    .hamburger {
+      display: none;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 0.25rem;
+      color: var(--dark);
+    }
+
+    /* ==========================
+       SECTION 1: HERO
+       Layout: Editorial Split
+    ========================== */
+    .hero {
+      display: grid;
+      grid-template-columns: 54% 46%;
+      min-height: 100vh;
+      padding-top: 4.5rem;
+    }
+
+    .hero-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5rem 3.5rem 5rem 3rem;
+    }
+
+    .hero-kicker {
+      font-family: var(--sans);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-title {
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 4vw, 4.25rem);
+      font-weight: 700;
+      line-height: 1.07;
+      color: var(--dark);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--terracotta);
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--mid);
+      line-height: 1.75;
+      max-width: 27rem;
+      font-weight: 300;
+      margin-bottom: 2.75rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .btn-wsp {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--terracotta);
+      color: var(--white);
+      padding: 0.875rem 1.875rem;
+      font-family: var(--sans);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-wsp:hover {
+      background: var(--dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-wsp svg { flex-shrink: 0; }
+
+    .hero-addr {
+      font-size: 0.8rem;
+      color: var(--mid);
+    }
+
+    .hero-addr strong {
+      color: var(--dark);
+      font-weight: 500;
+    }
+
+    .hero-visual {
+      position: relative;
+      overflow: hidden;
+      background: var(--dark-2);
+    }
+
+    .hero-visual-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      padding: 2.5rem;
+    }
+
+    /* Tile pattern overlay */
+    .hero-visual-inner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(191,104,70,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(191,104,70,0.07) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    .hero-visual-inner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(45deg, rgba(191,104,70,0.04) 1px, transparent 1px),
+        linear-gradient(-45deg, rgba(191,104,70,0.04) 1px, transparent 1px);
+      background-size: 96px 96px;
+    }
+
+    .hero-badge {
+      position: relative;
+      z-index: 2;
+      border: 1px solid rgba(191,104,70,0.3);
+      padding: 0.6rem 1rem;
+    }
+
+    .hero-badge p {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(244,237,226,0.5);
+    }
+
+    .hero-badge strong {
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      font-weight: 400;
+      font-style: italic;
+      color: rgba(244,237,226,0.7);
+    }
+
+    /* ==========================
+       SECTION 2: STATEMENT
+       Layout: Full-width centered editorial
+    ========================== */
+    .statement {
+      background: var(--dark);
+      padding: 7.5rem 2rem;
+      text-align: center;
+    }
+
+    .statement-inner {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-family: var(--sans);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+      margin-bottom: 2rem;
+      display: block;
+    }
+
+    .statement-quote {
+      font-family: var(--serif);
+      font-size: clamp(1.6rem, 3vw, 2.75rem);
+      line-height: 1.32;
+      color: var(--cream);
+      font-style: italic;
+      font-weight: 400;
+      margin-bottom: 2rem;
+    }
+
+    .statement-body {
+      font-size: 0.92rem;
+      color: rgba(244,237,226,0.5);
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.8;
+      font-weight: 300;
+    }
+
+    /* ==========================
+       SECTION 3: SERVICES
+       Layout: Asymmetric gallery
+    ========================== */
+    .services {
+      padding: 7.5rem 3rem;
+      background: var(--cream);
+    }
+
+    .section-head {
+      margin-bottom: 3.5rem;
+    }
+
+    .section-title {
+      font-family: var(--serif);
+      font-size: clamp(1.65rem, 2.2vw, 2.35rem);
+      font-weight: 600;
+      color: var(--dark);
+      margin-top: 0.6rem;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 1px;
+      background: var(--sand-dk);
+    }
+
+    .srv {
+      background: var(--cream);
+      padding: 2.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .srv-main {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      background: var(--dark);
+    }
+
+    .srv-wide {
+      grid-column: 2 / span 2;
+      grid-row: 2;
+      background: var(--sand);
+    }
+
+    .srv-num {
+      font-family: var(--serif);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--terracotta);
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+
+    .srv-icon {
+      margin-bottom: 1.25rem;
+      opacity: 0.55;
+    }
+
+    .srv-name {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 0.75rem;
+      line-height: 1.2;
+    }
+
+    .srv-main .srv-name {
+      font-size: 1.75rem;
+      color: var(--cream);
+    }
+
+    .srv-desc {
+      font-size: 0.865rem;
+      color: var(--mid);
+      line-height: 1.72;
+    }
+
+    .srv-main .srv-desc {
+      color: rgba(244,237,226,0.52);
+    }
+
+    .srv-deco {
+      position: absolute;
+      bottom: 2.5rem;
+      right: 2.5rem;
+      width: 48px;
+      height: 48px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      opacity: 0.1;
+    }
+
+    .srv-main .srv-deco { color: var(--terracotta); opacity: 0.25; }
+
+    /* ==========================
+       SECTION 4: PROCESS
+       Layout: Timeline / process
+    ========================== */
+    .process {
+      background: var(--sand);
+      padding: 7.5rem 3rem;
+    }
+
+    .process-head {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: end;
+      margin-bottom: 5rem;
+    }
+
+    .process-head p {
+      font-size: 0.9rem;
+      color: var(--mid);
+      line-height: 1.78;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      position: relative;
+    }
+
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 1.375rem;
+      left: 1.5rem;
+      right: 1.5rem;
+      height: 1px;
+      background: var(--sand-dk);
+    }
+
+    .step {
+      padding: 0 1.5rem;
+      padding-top: 4rem;
+      position: relative;
+    }
+
+    .step::before {
+      content: '';
+      position: absolute;
+      top: 0.875rem;
+      left: 1.5rem;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 50%;
+      background: var(--terracotta);
+    }
+
+    .step-n {
+      font-family: var(--serif);
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--sand-dk);
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+
+    .step-title {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .step-desc {
+      font-size: 0.82rem;
+      color: var(--mid);
+      line-height: 1.72;
+    }
+
+    /* ==========================
+       SECTION 5: SHOWCASE
+       Layout: Image-led section
+    ========================== */
+    .showcase {
+      background: var(--cream);
+      padding: 7.5rem 0;
+    }
+
+    .showcase-header {
+      padding: 0 3rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .showcase-header .section-title {
+      max-width: 26rem;
+    }
+
+    .mosaic {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 1fr;
+      grid-template-rows: 320px 220px;
+      gap: 3px;
+    }
+
+    .tile {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tile-main {
+      grid-row: span 2;
+    }
+
+    .tile-bg {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .tile-bg-a { background: var(--dark-2); }
+    .tile-bg-b { background: var(--terracotta); }
+    .tile-bg-c { background: var(--sand-dk); }
+    .tile-bg-d { background: var(--dark); }
+    .tile-bg-e { background: var(--terracotta-pl); }
+
+    .tile-pattern {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(244,237,226,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(244,237,226,0.07) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .tile-label {
+      position: absolute;
+      bottom: 1.25rem;
+      left: 1.25rem;
+      background: rgba(26,22,18,0.65);
+      color: var(--cream);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.7rem;
+      border-radius: 1px;
+    }
+
+    .tile-bg-b .tile-label { background: rgba(26,22,18,0.55); }
+    .tile-bg-e .tile-label { background: rgba(26,22,18,0.45); }
+
+    .showcase-note {
+      padding: 2rem 3rem 0;
+      font-size: 0.85rem;
+      color: var(--mid);
+      max-width: 560px;
+      line-height: 1.75;
+    }
+
+    /* ==========================
+       SECTION 6: TESTIMONIALS
+       Layout: Testimonial narrative
+    ========================== */
+    .testimonials {
+      background: var(--dark);
+      padding: 7.5rem 3rem;
+    }
+
+    .testimonials-head {
+      margin-bottom: 4.5rem;
+    }
+
+    .testimonials-head .section-title {
+      color: var(--cream);
+    }
+
+    .t-layout {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .t-mark {
+      font-family: var(--serif);
+      font-size: 5rem;
+      line-height: 0.6;
+      color: var(--terracotta);
+      opacity: 0.35;
+      display: block;
+      margin-bottom: 1.5rem;
+    }
+
+    .t-featured-text {
+      font-family: var(--serif);
+      font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+      line-height: 1.52;
+      color: var(--cream);
+      font-style: italic;
+      margin-bottom: 1.75rem;
+    }
+
+    .t-author {
+      font-size: 0.75rem;
+      color: rgba(244,237,226,0.38);
+      letter-spacing: 0.05em;
+    }
+
+    .t-secondary {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding-top: 0.5rem;
+    }
+
+    .t-small {
+      border-top: 1px solid rgba(244,237,226,0.08);
+      padding: 2rem 0;
+    }
+
+    .t-small:last-child {
+      border-bottom: 1px solid rgba(244,237,226,0.08);
+    }
+
+    .t-small-text {
+      font-size: 0.875rem;
+      color: rgba(244,237,226,0.6);
+      line-height: 1.72;
+      font-style: italic;
+      margin-bottom: 0.75rem;
+    }
+
+    .t-small-author {
+      font-size: 0.72rem;
+      color: rgba(244,237,226,0.3);
+      letter-spacing: 0.05em;
+    }
+
+    /* ==========================
+       SECTION 7: LOCATION
+       Layout: Location-focused
+    ========================== */
+    .location {
+      background: var(--cream);
+      padding: 7.5rem 3rem;
+    }
+
+    .loc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    .loc-text .section-title {
+      margin-bottom: 1.25rem;
+    }
+
+    .loc-text > p {
+      font-size: 0.9rem;
+      color: var(--mid);
+      line-height: 1.78;
+      margin-bottom: 2.25rem;
+    }
+
+    .loc-details {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .loc-item {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .loc-icon {
+      width: 1.4rem;
+      height: 1.4rem;
+      flex-shrink: 0;
+      color: var(--terracotta);
+      margin-top: 0.15rem;
+    }
+
+    .loc-item-body strong {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--dark);
+      margin-bottom: 0.2rem;
+    }
+
+    .loc-item-body span {
+      font-size: 0.875rem;
+      color: var(--mid);
+    }
+
+    .map-placeholder {
+      background: var(--dark-2);
+      height: 420px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .map-placeholder::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(191,104,70,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(191,104,70,0.06) 1px, transparent 1px);
+      background-size: 36px 36px;
+    }
+
+    .map-pin-wrap {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+
+    .map-dot {
+      width: 14px;
+      height: 14px;
+      background: var(--terracotta);
+      border-radius: 50%;
+      margin: 0 auto 0.75rem;
+      box-shadow: 0 0 0 8px rgba(191,104,70,0.18), 0 0 0 16px rgba(191,104,70,0.08);
+    }
+
+    .map-pin-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(244,237,226,0.4);
+    }
+
+    /* ==========================
+       SECTION 8: FAQ
+       Layout: FAQ Accordion
+    ========================== */
+    .faq {
+      background: var(--sand);
+      padding: 7.5rem 3rem;
+    }
+
+    .faq-wrap {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 6rem;
+    }
+
+    .faq-intro .section-title {
+      margin-bottom: 1rem;
+    }
+
+    .faq-intro > p {
+      font-size: 0.875rem;
+      color: var(--mid);
+      line-height: 1.78;
+    }
+
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .faq-item {
+      border-top: 1px solid var(--sand-dk);
+    }
+
+    .faq-item:last-child {
+      border-bottom: 1px solid var(--sand-dk);
+    }
+
+    .faq-q {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.5rem 0;
+      cursor: pointer;
+      font-family: var(--serif);
+      font-size: 0.975rem;
+      font-weight: 500;
+      color: var(--dark);
+      user-select: none;
+      transition: color 0.2s;
+    }
+
+    .faq-q:hover { color: var(--terracotta); }
+
+    .faq-plus {
+      flex-shrink: 0;
+      width: 1.25rem;
+      height: 1.25rem;
+      color: var(--terracotta);
+      transition: transform 0.3s;
+    }
+
+    .faq-item.open .faq-plus { transform: rotate(45deg); }
+
+    .faq-a {
+      font-size: 0.875rem;
+      color: var(--mid);
+      line-height: 1.78;
+      padding-bottom: 1.5rem;
+      display: none;
+    }
+
+    .faq-item.open .faq-a { display: block; }
+
+    /* ==========================
+       FOOTER
+    ========================== */
+    footer {
+      background: var(--dark);
+      padding: 4.5rem 3rem 2rem;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 4rem;
+      padding-bottom: 3rem;
+      border-bottom: 1px solid rgba(244,237,226,0.07);
+      margin-bottom: 1.75rem;
+    }
+
+    .footer-brand {
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-tagline {
+      font-size: 0.82rem;
+      color: rgba(244,237,226,0.38);
+      line-height: 1.7;
+      max-width: 260px;
+    }
+
+    .footer-col h4 {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(244,237,226,0.3);
+      margin-bottom: 1.25rem;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .footer-col ul a {
+      font-size: 0.85rem;
+      color: rgba(244,237,226,0.5);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-col ul a:hover { color: var(--cream); }
+
+    .footer-col p {
+      font-size: 0.85rem;
+      color: rgba(244,237,226,0.5);
+      line-height: 1.7;
+      margin-bottom: 0.35rem;
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-copy {
+      font-size: 0.72rem;
+      color: rgba(244,237,226,0.22);
+    }
+
+    .footer-wsp {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--terracotta);
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .footer-wsp:hover { opacity: 0.7; }
+
+    /* ==========================
+       FLOAT BUTTON
+    ========================== */
+    .wsp-float {
+      position: fixed;
+      bottom: 1.75rem;
+      right: 1.75rem;
+      z-index: 100;
+      width: 3.25rem;
+      height: 3.25rem;
+      border-radius: 50%;
+      background: #25D366;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.3);
+      transition: transform 0.2s;
+    }
+
+    .wsp-float:hover { transform: scale(1.08); }
+
+    .wsp-float svg { width: 1.6rem; height: 1.6rem; fill: #fff; }
+
+    /* ==========================
+       RESPONSIVE
+    ========================== */
+    @media (max-width: 960px) {
+      nav { padding: 1rem 1.5rem; }
+      nav.scrolled { padding: 0.7rem 1.5rem; }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0; right: 0;
+        flex-direction: column;
+        gap: 0;
+        background: var(--cream);
+        border-top: 1px solid var(--sand);
+        padding: 0.5rem 0;
+      }
+
+      .nav-links.open { display: flex; }
+
+      .nav-links li { border-bottom: 1px solid var(--sand); }
+
+      .nav-links a {
+        display: block;
+        padding: 0.875rem 1.5rem;
+      }
+
+      .nav-cta {
+        margin: 0.5rem 1.5rem !important;
+        display: inline-block;
+        border-radius: 2px;
+      }
+
+      .hamburger { display: block; }
+
+      .hero {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 280px;
+      }
+
+      .hero-text {
+        padding: 6.5rem 1.5rem 2.5rem;
+      }
+
+      .services { padding: 5rem 1.5rem; }
+
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .srv-main { grid-row: span 1; }
+      .srv-wide { grid-column: 1; }
+
+      .process { padding: 5rem 1.5rem; }
+
+      .process-head { grid-template-columns: 1fr; gap: 1rem; }
+
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      .steps::before { display: none; }
+
+      .step {
+        padding: 1.5rem 0 1.5rem 2.75rem;
+        border-left: 1px solid var(--sand-dk);
+        margin-left: 0.5rem;
+      }
+
+      .step::before {
+        top: 1.8rem;
+        left: -0.5rem;
+      }
+
+      .showcase { padding: 5rem 0; }
+      .showcase-header { padding: 0 1.5rem; }
+      .showcase-note { padding: 1.5rem 1.5rem 0; }
+
+      .mosaic {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 180px 140px 140px;
+      }
+
+      .tile-main {
+        grid-column: span 2;
+        grid-row: span 1;
+      }
+
+      .testimonials { padding: 5rem 1.5rem; }
+      .t-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+
+      .location { padding: 5rem 1.5rem; }
+      .loc-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .map-placeholder { height: 280px; }
+
+      .faq { padding: 5rem 1.5rem; }
+      .faq-wrap { grid-template-columns: 1fr; gap: 2rem; }
+
+      footer { padding: 3.5rem 1.5rem 1.75rem; }
+      .footer-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <a href="#" class="nav-logo">JRrosario</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#servicios">Productos</a></li>
+      <li><a href="#proceso">Como compramos</a></li>
+      <li><a href="#testimonios">Clientes</a></li>
+      <li><a href="#ubicacion">Ubicacion</a></li>
+      <li>
+        <a href="https://wa.me/5493413054807" class="nav-cta" target="_blank" rel="noopener">
+          Consultar por WhatsApp
+        </a>
+      </li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Abrir menu">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="19" y2="6"/>
+        <line x1="3" y1="11" x2="19" y2="11"/>
+        <line x1="3" y1="16" x2="19" y2="16"/>
+      </svg>
+    </button>
+  </nav>
+
+
+  <!-- ===========================
+       S1: HERO / Editorial Split
+  ============================ -->
+  <section class="hero" id="inicio">
+    <div class="hero-text">
+      <span class="hero-kicker">Molina 2075, Rosario</span>
+      <h1 class="hero-title">
+        Todo lo que necesitas<br>
+        para <em>armar el bano</em><br>
+        que tenes en la cabeza
+      </h1>
+      <p class="hero-sub">
+        Sanitarios, griferias, vanitorios, mamparas y accesorios. Todo en un solo local, con alguien que te ayuda a elegir bien.
+      </p>
+      <div class="hero-actions">
+        <a href="https://wa.me/5493413054807" class="btn-wsp" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.118.554 4.107 1.523 5.832L.024 24l6.348-1.484A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.79 9.79 0 01-5.058-1.403l-.363-.215-3.765.88.895-3.669-.236-.376A9.79 9.79 0 012.182 12C2.182 6.582 6.582 2.182 12 2.182S21.818 6.582 21.818 12 17.418 21.818 12 21.818z"/>
+          </svg>
+          Consultar por WhatsApp
+        </a>
+        <span class="hero-addr">
+          <strong>Molina 2075</strong> &nbsp;|&nbsp; Rosario, Santa Fe
+        </span>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-visual-inner">
+        <div class="hero-badge">
+          <p>Tienda de equipos de bano</p>
+          <strong>Rosario, Argentina</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===========================
+       S2: STATEMENT / Full-width editorial
+  ============================ -->
+  <section class="statement">
+    <div class="statement-inner">
+      <span class="eyebrow">Quienes somos</span>
+      <p class="statement-quote">
+        "Un bano bien resuelto no necesita ser caro. Necesita que alguien te explique que va con que."
+      </p>
+      <p class="statement-body">
+        En JRrosario vendemos todo lo que va dentro de un bano: desde el inodoro y la bacha hasta el ultimo toallero. Lo que mas nos piden los clientes no es solo el producto. Es que alguien los ayude a entender si lo que eligieron va a funcionar junto, dentro del espacio que tienen y con lo que quieren gastar.
+      </p>
+    </div>
+  </section>
+
+
+  <!-- ===========================
+       S3: SERVICES / Asymmetric gallery
+  ============================ -->
+  <section class="services" id="servicios">
+    <div class="section-head">
+      <span class="eyebrow" style="color:var(--terracotta)">Lo que encontras</span>
+      <h2 class="section-title">Productos y servicios</h2>
+    </div>
+    <div class="services-grid">
+
+      <div class="srv srv-main">
+        <svg class="srv-icon" width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#BF6846" stroke-width="1.2">
+          <rect x="5" y="22" width="26" height="10" rx="2"/>
+          <path d="M10 22V14a6 6 0 0112 0v8"/>
+          <circle cx="27" cy="15" r="4"/>
+        </svg>
+        <span class="srv-num">01</span>
+        <h3 class="srv-name">Sanitarios y griferia</h3>
+        <p class="srv-desc">
+          Inodoros, bidets, bachas empotradas y de sobre mesada, canillas monocomando y ducharosas. Trabajamos con marcas como FV, Roca y Ferrum. Si buscas algo especifico o un acabado fuera de lo comun, pregunta antes de recorrer diez casas de materiales.
+        </p>
+        <div class="srv-deco"></div>
+      </div>
+
+      <div class="srv">
+        <span class="srv-num">02</span>
+        <h3 class="srv-name">Muebles de bano</h3>
+        <p class="srv-desc">
+          Vanitorios con bacha integrada, espejos con luz led, estantes y columnas. Para banos chicos donde cada centimetro hace la diferencia.
+        </p>
+        <div class="srv-deco"></div>
+      </div>
+
+      <div class="srv">
+        <span class="srv-num">03</span>
+        <h3 class="srv-name">Mamparas y duchas</h3>
+        <p class="srv-desc">
+          Columnas de ducha, hidromasajes, mamparas fijas y plegables en distintas terminaciones. Te mostramos las opciones para tu espacio real, no para uno ideal.
+        </p>
+        <div class="srv-deco"></div>
+      </div>
+
+      <div class="srv srv-wide">
+        <span class="srv-num">04</span>
+        <h3 class="srv-name">Accesorios y terminaciones</h3>
+        <p class="srv-desc">
+          Portarrollos, jaboneras, toalleros, perchas y todo lo que define como termina el bano. Lo que parece secundario hace mucho a la vista del conjunto.
+        </p>
+        <div class="srv-deco"></div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ===========================
+       S4: PROCESS / Timeline
+  ============================ -->
+  <section class="process" id="proceso">
+    <div class="process-head">
+      <div>
+        <span class="eyebrow" style="color:var(--terracotta)">Como funciona una visita</span>
+        <h2 class="section-title">Sin vueltas</h2>
+      </div>
+      <p>
+        No hace falta venir con todo decidido. La mayoria de los clientes llegan con una foto en el celular y una idea vaga del presupuesto. Con eso ya podemos trabajar. Cuantas mas medidas y fotos traigas del espacio, mas concreto te podemos orientar.
+      </p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">01</div>
+        <h3 class="step-title">Venis al local</h3>
+        <p class="step-desc">Molina 2075, Rosario. Sin turno previo, en horario comercial. El local tiene todo para ver en persona.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <h3 class="step-title">Nos contas el proyecto</h3>
+        <p class="step-desc">Medidas, fotos del bano actual, lo que queres cambiar. Con eso armamos las opciones que aplican a tu caso.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <h3 class="step-title">Elegis en mano</h3>
+        <p class="step-desc">Ver el producto en persona hace diferencia. El color en pantalla no es el mismo que en el bano. Las texturas tampoco.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">04</div>
+        <h3 class="step-title">Te lo llevas o lo mandamos</h3>
+        <p class="step-desc">Consulta la disponibilidad de entrega segun tu zona. Para lo que no cabe en el auto, coordinamos.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===========================
+       S5: SHOWCASE / Image-led
+  ============================ -->
+  <section class="showcase">
+    <div class="showcase-header">
+      <span class="eyebrow" style="color:var(--terracotta)">Combinaciones que funcionan</span>
+      <h2 class="section-title">Asi quedan los productos cuando se eligen bien</h2>
+    </div>
+    <div class="mosaic">
+      <div class="tile tile-main">
+        <div class="tile-bg tile-bg-a">
+          <div class="tile-pattern"></div>
+          <span class="tile-label">Bano completo</span>
+        </div>
+      </div>
+      <div class="tile">
+        <div class="tile-bg tile-bg-b">
+          <span class="tile-label">Griferia</span>
+        </div>
+      </div>
+      <div class="tile">
+        <div class="tile-bg tile-bg-c">
+          <span class="tile-label">Vanitorio</span>
+        </div>
+      </div>
+      <div class="tile">
+        <div class="tile-bg tile-bg-d">
+          <div class="tile-pattern"></div>
+          <span class="tile-label">Mampara</span>
+        </div>
+      </div>
+      <div class="tile">
+        <div class="tile-bg tile-bg-e">
+          <span class="tile-label">Accesorios</span>
+        </div>
+      </div>
+    </div>
+    <p class="showcase-note">
+      Veni con la foto del plano o del bano que tenes. Desde ahi es mas facil entender que entra, que no entra y que combinaciones van a quedar bien en la realidad.
+    </p>
+  </section>
+
+
+  <!-- ===========================
+       S6: TESTIMONIALS / Narrative
+  ============================ -->
+  <section class="testimonials" id="testimonios">
+    <div class="testimonials-head">
+      <span class="eyebrow">Lo que nos cuentan despues</span>
+      <h2 class="section-title">Clientes</h2>
+    </div>
+    <div class="t-layout">
+      <div class="t-featured">
+        <span class="t-mark">"</span>
+        <p class="t-featured-text">
+          Fui a buscar solo un inodoro y me termine llevando el vanitorio, el espejo y los toalleros porque me mostraron como quedaria todo junto. Quedo el bano como de revista.
+        </p>
+        <span class="t-author">Claudia R. &nbsp;/&nbsp; Villa del Parque, Rosario</span>
+      </div>
+      <div class="t-secondary">
+        <div class="t-small">
+          <p class="t-small-text">
+            Tenia un presupuesto ajustado para remodelar el bano del departamento y me ayudaron a armar la combinacion justa sin pasarme. No me trataron como a alguien que iba a gastar poco.
+          </p>
+          <span class="t-small-author">Marcos D. &nbsp;/&nbsp; Centro, Rosario</span>
+        </div>
+        <div class="t-small">
+          <p class="t-small-text">
+            Pregunte por una mampara especifica que habiamos visto online y nos consiguieron algo mejor al mismo precio. Se nota que conocen bien a los proveedores.
+          </p>
+          <span class="t-small-author">Patricia G. &nbsp;/&nbsp; Fisherton, Rosario</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===========================
+       S7: LOCATION / Location-focused
+  ============================ -->
+  <section class="location" id="ubicacion">
+    <div class="loc-grid">
+      <div class="loc-text">
+        <span class="eyebrow" style="color:var(--terracotta)">Donde estamos</span>
+        <h2 class="section-title">Veni a vernos a Molina 2075</h2>
+        <p>
+          Estamos en Rosario, en un local con todo para ver en persona. Sin turno. Si tenes dudas antes de venir, manda un WhatsApp y te respondemos.
+        </p>
+        <div class="loc-details">
+          <div class="loc-item">
+            <svg class="loc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+              <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+            <div class="loc-item-body">
+              <strong>Direccion</strong>
+              <span>Molina 2075, Rosario, Santa Fe</span>
+            </div>
+          </div>
+          <div class="loc-item">
+            <svg class="loc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.01 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.29 6.29l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+            <div class="loc-item-body">
+              <strong>Telefono y WhatsApp</strong>
+              <span>+54 341 305-4807</span>
+            </div>
+          </div>
+          <div class="loc-item">
+            <svg class="loc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            <div class="loc-item-body">
+              <strong>Horarios</strong>
+              <span>Lunes a viernes: 9 a 18 hs &nbsp;|&nbsp; Sabados: 9 a 13 hs</span>
+            </div>
+          </div>
+        </div>
+        <a href="https://wa.me/5493413054807" class="btn-wsp" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.118.554 4.107 1.523 5.832L.024 24l6.348-1.484A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.79 9.79 0 01-5.058-1.403l-.363-.215-3.765.88.895-3.669-.236-.376A9.79 9.79 0 012.182 12C2.182 6.582 6.582 2.182 12 2.182S21.818 6.582 21.818 12 17.418 21.818 12 21.818z"/>
+          </svg>
+          Escribinos por WhatsApp
+        </a>
+      </div>
+      <div class="map-placeholder">
+        <div class="map-pin-wrap">
+          <div class="map-dot"></div>
+          <p class="map-pin-label">Molina 2075</p>
+          <p class="map-pin-label" style="margin-top:0.2rem;opacity:0.55;font-size:0.62rem">Rosario, Santa Fe</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===========================
+       S8: FAQ / Accordion
+  ============================ -->
+  <section class="faq" id="preguntas">
+    <div class="faq-wrap">
+      <div class="faq-intro">
+        <span class="eyebrow" style="color:var(--terracotta)">Preguntas frecuentes</span>
+        <h2 class="section-title">Lo que suelen preguntar antes de venir</h2>
+        <p>Si algo no esta aca, escribinos por WhatsApp y te respondemos rapido.</p>
+      </div>
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span>Puedo ir sin saber exactamente lo que quiero?</span>
+            <svg class="faq-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </div>
+          <div class="faq-a">
+            Si. La mayoria de la gente viene con una idea general y lo terminamos de definir en el local. Cuanto mas informacion traigas del espacio (medidas, fotos del bano actual, el plano si lo tenes), mejor podemos orientarte.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span>Hacen entregas a domicilio?</span>
+            <svg class="faq-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </div>
+          <div class="faq-a">
+            Dependiendo del pedido y la zona, coordinamos la entrega. Consulta en el local o por WhatsApp con la direccion de destino y te confirmamos disponibilidad y costo.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span>Los precios que vi online estan actualizados?</span>
+            <svg class="faq-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </div>
+          <div class="faq-a">
+            Los precios pueden variar. Escribinos por WhatsApp o veni al local para confirmar el precio de un producto antes de tomar una decision.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span>Venden por separado o solo en paquetes?</span>
+            <svg class="faq-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </div>
+          <div class="faq-a">
+            Por separado. Podes comprar solo una canilla, solo un espejo o armar el bano completo. Sin minimo de compra.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span>Que pasa si el producto llega con algun defecto?</span>
+            <svg class="faq-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </div>
+          <div class="faq-a">
+            Trabajamos con garantia de fabrica. Si hay algun problema al momento de la instalacion, traete el producto y el ticket y lo gestionamos juntos.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <p class="footer-brand">JRrosario Amoblamientos y Sanitarios</p>
+        <p class="footer-tagline">Tienda de equipos de bano en Rosario. Sanitarios, griferias, vanitorios, mamparas y accesorios.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navegacion</h4>
+        <ul>
+          <li><a href="#servicios">Productos</a></li>
+          <li><a href="#proceso">Como compramos</a></li>
+          <li><a href="#testimonios">Clientes</a></li>
+          <li><a href="#preguntas">Preguntas frecuentes</a></li>
+          <li><a href="#ubicacion">Donde estamos</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <p>Molina 2075, Rosario</p>
+        <p>+54 341 305-4807</p>
+        <p>Lun a Vie: 9 a 18 hs</p>
+        <p>Sabados: 9 a 13 hs</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">2026 JRrosario Amoblamientos y Sanitarios. Rosario, Argentina.</span>
+      <a href="https://wa.me/5493413054807" class="footer-wsp" target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.118.554 4.107 1.523 5.832L.024 24l6.348-1.484A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.79 9.79 0 01-5.058-1.403l-.363-.215-3.765.88.895-3.669-.236-.376A9.79 9.79 0 012.182 12C2.182 6.582 6.582 2.182 12 2.182S21.818 6.582 21.818 12 17.418 21.818 12 21.818z"/>
+        </svg>
+        341 305-4807
+      </a>
+    </div>
+  </footer>
+
+  <!-- Float WhatsApp -->
+  <a href="https://wa.me/5493413054807" class="wsp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
+    <svg viewBox="0 0 24 24">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.118.554 4.107 1.523 5.832L.024 24l6.348-1.484A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.79 9.79 0 01-5.058-1.403l-.363-.215-3.765.88.895-3.669-.236-.376A9.79 9.79 0 012.182 12C2.182 6.582 6.582 2.182 12 2.182S21.818 6.582 21.818 12 17.418 21.818 12 21.818z"/>
+    </svg>
+  </a>
+
+  <script>
+    const nav = document.getElementById('nav');
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('open');
+    });
+
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', () => navLinks.classList.remove('open'));
+    });
+
+    document.querySelectorAll('.faq-q').forEach(q => {
+      q.addEventListener('click', () => {
+        const item = q.closest('.faq-item');
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+        if (!wasOpen) item.classList.add('open');
+      });
+    });
+  </script>
+</body>
+</html>

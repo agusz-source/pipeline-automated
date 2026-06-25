@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dalfino Muebles &mdash; Fabrica de Muebles en Rosario</title>
+  <meta name="description" content="Fabrica de muebles a medida, restauracion y tapizado en Rosario. Velez Sarsfield 5727. Consulta sin cargo." />
+  <meta property="og:title" content="Dalfino Muebles" />
+  <meta property="og:description" content="Fabricamos muebles a medida en Rosario. Restauracion, tapizado y mobiliario comercial." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ========================================
+       DESIGN TOKENS
+    ======================================== */
+    :root {
+      --bg:          #F4EDE0;
+      --bg-alt:      #EDE5D4;
+      --bg-dark:     #181310;
+      --bg-wood:     #9B6B3E;
+      --text:        #1C1710;
+      --text-light:  #7A6B56;
+      --text-inv:    #F0E8D8;
+      --wood:        #9B6B3E;
+      --wood-light:  #C4905A;
+      --border:      #CEC0A8;
+      --border-inv:  rgba(240, 232, 216, 0.1);
+
+      --serif: 'Cormorant Garamond', Georgia, serif;
+      --sans:  'Inter', system-ui, sans-serif;
+    }
+
+    /* ========================================
+       RESET & BASE
+    ======================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 300;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { display: block; width: 100%; }
+    ul, ol { list-style: none; }
+
+    /* ========================================
+       GRAIN OVERLAY
+    ======================================== */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.35;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.07'/%3E%3C/svg%3E");
+    }
+
+    /* ========================================
+       UTILITY CLASSES
+    ======================================== */
+    .label {
+      display: block;
+      font-family: var(--sans);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+
+    .label-inv {
+      color: rgba(240, 232, 216, 0.45);
+    }
+
+    /* Scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.75s ease, transform 0.75s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ========================================
+       NAVIGATION
+    ======================================== */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      padding: 1.5rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.35s, border-color 0.35s, backdrop-filter 0.35s;
+    }
+
+    .nav.scrolled {
+      background: rgba(244, 237, 224, 0.92);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-logo {
+      font-family: var(--serif);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      color: var(--text);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.25rem;
+    }
+
+    .nav-links a {
+      font-size: 0.6875rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text);
+      opacity: 0.55;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    .nav-cta {
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text);
+      border: 1px solid var(--text);
+      padding: 0.55rem 1.25rem;
+      transition: background 0.22s, color 0.22s;
+    }
+    .nav-cta:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    /* ========================================
+       SECTION 1: HERO
+       Layout: Editorial split
+    ======================================== */
+    .hero {
+      display: grid;
+      grid-template-columns: 55% 45%;
+      min-height: 100svh;
+    }
+
+    .hero-left {
+      padding: 9rem 3.5rem 4.5rem 3rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      border-right: 1px solid var(--border);
+    }
+
+    .hero-kicker {
+      margin-bottom: 2.75rem;
+    }
+
+    .hero-headline {
+      font-family: var(--serif);
+      font-size: clamp(3.75rem, 5.5vw, 7.5rem);
+      font-weight: 300;
+      line-height: 0.95;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      margin-bottom: 2.75rem;
+    }
+
+    .hero-headline i {
+      font-style: italic;
+      color: var(--wood);
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--text-light);
+      max-width: 30rem;
+      line-height: 1.75;
+      margin-bottom: 3rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.625rem;
+      background: var(--text);
+      color: var(--bg);
+      font-family: var(--sans);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.875rem 1.875rem;
+      transition: background 0.25s, color 0.25s;
+    }
+    .btn-primary:hover { background: var(--wood); }
+
+    .btn-text {
+      font-size: 0.75rem;
+      font-weight: 300;
+      color: var(--text-light);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.2s;
+    }
+    .btn-text:hover { color: var(--text); }
+
+    .hero-right {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-visual {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(160deg, #9B6B3E 0%, #5E3A1C 35%, #3A2210 65%, #1E1008 100%);
+    }
+
+    .hero-visual::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        172deg,
+        transparent 0px,
+        transparent 18px,
+        rgba(255,255,255,0.018) 18px,
+        rgba(255,255,255,0.018) 19px
+      );
+    }
+
+    .hero-visual::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 35% 55%, rgba(200,150,90,0.22) 0%, transparent 65%);
+    }
+
+    .hero-caption {
+      position: absolute;
+      bottom: 2.5rem;
+      right: 2rem;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 0.6rem;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(240, 232, 216, 0.35);
+    }
+
+    .hero-index {
+      position: absolute;
+      bottom: 2rem;
+      left: 2rem;
+      font-family: var(--serif);
+      font-size: 7rem;
+      font-weight: 300;
+      line-height: 1;
+      color: rgba(255,255,255,0.04);
+      user-select: none;
+    }
+
+    /* ========================================
+       SECTION 2: TALLER
+       Layout: Image-led, full-bleed dark
+    ======================================== */
+    .taller {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      min-height: 80vh;
+      background: var(--bg-dark);
+    }
+
+    .taller-visual {
+      position: relative;
+      overflow: hidden;
+      min-height: 480px;
+      background: linear-gradient(195deg, #6B4525 0%, #3D2410 45%, #1A0C05 100%);
+    }
+
+    .taller-visual::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        168deg,
+        transparent 0px, transparent 22px,
+        rgba(255,255,255,0.014) 22px, rgba(255,255,255,0.014) 23px
+      );
+    }
+
+    .taller-visual::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to right, transparent 55%, var(--bg-dark) 100%),
+        radial-gradient(ellipse at 40% 60%, rgba(180,110,55,0.18) 0%, transparent 70%);
+    }
+
+    .taller-content {
+      padding: 5rem 3.5rem 5rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: var(--text-inv);
+    }
+
+    .taller-heading {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 3.25vw, 3.75rem);
+      font-weight: 300;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      color: #E8DFD0;
+      margin-bottom: 2rem;
+      margin-top: 1.75rem;
+    }
+
+    .taller-heading i {
+      font-style: italic;
+      color: var(--wood-light);
+    }
+
+    .taller-body {
+      font-size: 0.9375rem;
+      font-weight: 300;
+      color: rgba(232, 223, 208, 0.65);
+      line-height: 1.8;
+      max-width: 33rem;
+    }
+
+    .taller-body + .taller-body {
+      margin-top: 1.25rem;
+    }
+
+    .taller-address-row {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      color: rgba(232, 223, 208, 0.35);
+    }
+
+    /* ========================================
+       SECTION 3: SERVICIOS
+       Layout: Asymmetric numbered list
+    ======================================== */
+    .servicios {
+      padding: 7rem 0;
+    }
+
+    .servicios-top {
+      padding: 0 3rem 2.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+
+    .servicios-heading {
+      font-family: var(--serif);
+      font-size: clamp(2.75rem, 4.5vw, 5.75rem);
+      font-weight: 300;
+      line-height: 1.0;
+      letter-spacing: -0.025em;
+      margin-top: 1rem;
+    }
+
+    .servicios-heading i {
+      font-style: italic;
+      color: var(--wood);
+    }
+
+    .servicios-intro {
+      font-size: 0.9375rem;
+      color: var(--text-light);
+      line-height: 1.75;
+      max-width: 26rem;
+      padding-bottom: 0.25rem;
+    }
+
+    .servicio-row {
+      display: grid;
+      grid-template-columns: 5rem 22rem 1fr 8rem;
+      gap: 0 1.5rem;
+      align-items: start;
+      padding: 2.75rem 3rem;
+      border-bottom: 1px solid var(--border);
+      cursor: default;
+      transition: background 0.28s;
+    }
+
+    .servicio-row:hover {
+      background: var(--bg-alt);
+    }
+
+    .srv-num {
+      font-family: var(--serif);
+      font-size: 1.75rem;
+      font-weight: 300;
+      color: var(--border);
+      line-height: 1;
+      padding-top: 0.3rem;
+    }
+
+    .srv-name {
+      font-family: var(--serif);
+      font-size: 1.875rem;
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.015em;
+    }
+
+    .srv-desc {
+      font-size: 0.875rem;
+      font-weight: 300;
+      color: var(--text-light);
+      line-height: 1.75;
+      padding-top: 0.35rem;
+    }
+
+    .srv-badge {
+      text-align: right;
+      padding-top: 0.4rem;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--wood);
+      border: 1px solid rgba(155,107,62,0.5);
+      padding: 0.3rem 0.7rem;
+    }
+
+    /* ========================================
+       SECTION 4: PROCESO
+       Layout: Horizontal timeline
+    ======================================== */
+    .proceso {
+      background: var(--bg-alt);
+      padding: 6.5rem 3rem;
+    }
+
+    .proceso-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 4.5rem;
+    }
+
+    .proceso-heading {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 3.5vw, 4.25rem);
+      font-weight: 300;
+      line-height: 1.07;
+      letter-spacing: -0.02em;
+      max-width: 26rem;
+      margin-top: 1rem;
+    }
+
+    .proceso-note {
+      font-size: 0.8125rem;
+      color: var(--text-light);
+      max-width: 18rem;
+      text-align: right;
+      line-height: 1.65;
+    }
+
+    .proceso-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--border);
+    }
+
+    .step {
+      padding: 2.75rem 2rem 2.75rem 0;
+      border-right: 1px solid var(--border);
+    }
+    .step:last-child { border-right: none; }
+    .step:not(:first-child) { padding-left: 2rem; }
+
+    .step-number {
+      font-family: var(--serif);
+      font-size: 3.25rem;
+      font-weight: 300;
+      color: var(--border);
+      line-height: 1;
+      margin-bottom: 1.75rem;
+    }
+
+    .step-name {
+      font-family: var(--serif);
+      font-size: 1.3125rem;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+      line-height: 1.2;
+    }
+
+    .step-desc {
+      font-size: 0.875rem;
+      font-weight: 300;
+      color: var(--text-light);
+      line-height: 1.72;
+    }
+
+    /* ========================================
+       SECTION 5: GALERIA
+       Layout: Asymmetric gallery grid
+    ======================================== */
+    .galeria {
+      padding: 7rem 3rem;
+    }
+
+    .galeria-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: flex-end;
+      margin-bottom: 3rem;
+    }
+
+    .galeria-heading {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 3.25vw, 4rem);
+      font-weight: 300;
+      line-height: 1.07;
+      letter-spacing: -0.02em;
+      margin-top: 1rem;
+    }
+
+    .galeria-heading i {
+      font-style: italic;
+    }
+
+    .galeria-note {
+      font-size: 0.8125rem;
+      color: var(--text-light);
+      line-height: 1.7;
+      max-width: 20rem;
+      justify-self: end;
+      text-align: right;
+    }
+
+    .gal-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: 290px 290px;
+      gap: 0.75rem;
+    }
+
+    .gal-cell {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gal-cell:nth-child(1) { grid-column: 1 / 6;  grid-row: 1; }
+    .gal-cell:nth-child(2) { grid-column: 6 / 9;  grid-row: 1; }
+    .gal-cell:nth-child(3) { grid-column: 9 / 13; grid-row: 1 / 3; }
+    .gal-cell:nth-child(4) { grid-column: 1 / 4;  grid-row: 2; }
+    .gal-cell:nth-child(5) { grid-column: 4 / 9;  grid-row: 2; }
+
+    .gal-fill {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.65s ease;
+    }
+
+    .gal-cell:hover .gal-fill { transform: scale(1.05); }
+
+    .gal-cell:nth-child(1) .gal-fill { background: linear-gradient(140deg,#8A5C35 0%,#4E2E12 100%); }
+    .gal-cell:nth-child(2) .gal-fill { background: linear-gradient(200deg,#5A3A1E 0%,#321A08 100%); }
+    .gal-cell:nth-child(3) .gal-fill { background: linear-gradient(165deg,#9B6840 0%,#4A2A10 55%,#281408 100%); }
+    .gal-cell:nth-child(4) .gal-fill { background: linear-gradient(220deg,#6E4A28 0%,#3C2210 100%); }
+    .gal-cell:nth-child(5) .gal-fill { background: linear-gradient(125deg,#A07248 0%,#5C3820 50%,#3A2010 100%); }
+
+    .gal-fill::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        170deg,
+        transparent 0, transparent 14px,
+        rgba(255,255,255,0.016) 14px, rgba(255,255,255,0.016) 15px
+      );
+    }
+
+    .gal-label {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(240, 232, 216, 0.65);
+      background: rgba(24, 19, 16, 0.45);
+      padding: 0.28rem 0.65rem;
+      backdrop-filter: blur(6px);
+    }
+
+    /* ========================================
+       SECTION 6: TESTIMONIOS
+       Layout: Testimonial narrative
+    ======================================== */
+    .testimonios {
+      background: var(--bg-dark);
+      padding: 7rem 3rem;
+      color: var(--text-inv);
+    }
+
+    .testimonios-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 5rem;
+      padding-bottom: 3rem;
+      border-bottom: 1px solid var(--border-inv);
+      align-items: flex-end;
+    }
+
+    .testimonios-heading {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 3.5vw, 4.75rem);
+      font-weight: 300;
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      color: #E8DFD0;
+    }
+
+    .testimonios-sub {
+      font-size: 0.875rem;
+      color: rgba(232, 223, 208, 0.45);
+      line-height: 1.75;
+      max-width: 26rem;
+      padding-bottom: 0.25rem;
+    }
+
+    .testimonios-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3rem;
+    }
+
+    .testimonio {
+      border-top: 1px solid var(--border-inv);
+      padding-top: 2.5rem;
+    }
+
+    .testimonio-open {
+      font-family: var(--serif);
+      font-size: 2.75rem;
+      line-height: 0.5;
+      display: block;
+      margin-bottom: 1.25rem;
+      color: var(--wood-light);
+    }
+
+    .testimonio-quote {
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.62;
+      color: #DDD5C4;
+      margin-bottom: 2.25rem;
+    }
+
+    .testimonio-author {
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: rgba(232, 223, 208, 0.4);
+    }
+
+    .testimonio-context {
+      font-size: 0.75rem;
+      color: rgba(232, 223, 208, 0.2);
+      margin-top: 0.25rem;
+      line-height: 1.5;
+    }
+
+    /* ========================================
+       SECTION 7: UBICACION
+       Layout: Location-focused section
+    ======================================== */
+    .ubicacion {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 68vh;
+    }
+
+    .ubi-map {
+      background: var(--bg-alt);
+      position: relative;
+      overflow: hidden;
+      min-height: 420px;
+    }
+
+    .ubi-map::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg,  var(--border) 1px, transparent 1px) 0 0 / 44px 44px,
+        linear-gradient(180deg, var(--border) 1px, transparent 1px) 0 0 / 44px 44px;
+      opacity: 0.35;
+    }
+
+    .ubi-map::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 30%, var(--bg-alt) 85%);
+    }
+
+    .ubi-pin {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%);
+      z-index: 1;
+      text-align: center;
+    }
+
+    .ubi-pin-dot {
+      width: 14px;
+      height: 14px;
+      background: var(--wood);
+      border-radius: 50%;
+      margin: 0 auto 0.625rem;
+      box-shadow:
+        0 0 0 7px rgba(155,107,62,0.18),
+        0 0 0 18px rgba(155,107,62,0.07),
+        0 0 0 32px rgba(155,107,62,0.03);
+    }
+
+    .ubi-pin-tag {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: var(--text);
+      color: var(--bg);
+      padding: 0.3rem 0.75rem;
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    .ubi-street {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, 18px);
+      z-index: 1;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-top: 2.5rem;
+      white-space: nowrap;
+    }
+
+    .ubi-content {
+      padding: 5rem 3.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-left: 1px solid var(--border);
+    }
+
+    .ubi-heading {
+      font-family: var(--serif);
+      font-size: clamp(1.875rem, 2.75vw, 3.5rem);
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin: 1.5rem 0 2.75rem;
+    }
+
+    .ubi-rows {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ubi-row {
+      display: grid;
+      grid-template-columns: 7.5rem 1fr;
+      gap: 1rem;
+      padding: 1.375rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .ubi-row:last-child { border-bottom: none; }
+
+    .ubi-row-key {
+      font-size: 0.6375rem;
+      font-weight: 500;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      padding-top: 0.15rem;
+    }
+
+    .ubi-row-val {
+      font-size: 0.9375rem;
+      font-weight: 300;
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .ubi-row-val a {
+      color: var(--wood);
+      transition: opacity 0.2s;
+    }
+    .ubi-row-val a:hover { opacity: 0.75; }
+
+    /* ========================================
+       SECTION 8: CTA WHATSAPP
+       Layout: Full-bleed split CTA
+    ======================================== */
+    .cta {
+      background: var(--bg-wood);
+      padding: 6.5rem 3rem;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .cta-heading {
+      font-family: var(--serif);
+      font-size: clamp(2.75rem, 4.5vw, 6rem);
+      font-weight: 300;
+      line-height: 0.97;
+      letter-spacing: -0.025em;
+      color: #FAF7F2;
+      margin-top: 1.5rem;
+    }
+
+    .cta-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2rem;
+    }
+
+    .cta-body {
+      font-size: 0.9375rem;
+      font-weight: 300;
+      color: rgba(250, 247, 242, 0.75);
+      line-height: 1.75;
+    }
+
+    .btn-wa {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #FAF7F2;
+      color: var(--wood);
+      font-family: var(--sans);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 1rem 2rem;
+      transition: background 0.25s, color 0.25s;
+    }
+    .btn-wa:hover {
+      background: var(--bg-dark);
+      color: #FAF7F2;
+    }
+
+    .btn-wa svg {
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+    }
+
+    .cta-secondary {
+      font-size: 0.75rem;
+      color: rgba(250, 247, 242, 0.42);
+      letter-spacing: 0.06em;
+    }
+
+    /* ========================================
+       FOOTER
+    ======================================== */
+    .footer {
+      background: var(--bg-dark);
+      color: rgba(240, 232, 216, 0.3);
+      padding: 2.25rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .footer-brand {
+      font-family: var(--serif);
+      font-size: 0.9375rem;
+      font-weight: 300;
+      color: rgba(232, 223, 208, 0.5);
+    }
+
+    .footer-data {
+      font-size: 0.6875rem;
+      letter-spacing: 0.06em;
+    }
+
+    /* ========================================
+       RESPONSIVE
+    ======================================== */
+    @media (max-width: 960px) {
+      .nav { padding: 1.25rem 1.5rem; }
+      .nav-links { display: none; }
+
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      .hero-left {
+        padding: 7.5rem 1.5rem 3rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .hero-right { min-height: 55vw; }
+
+      .taller { grid-template-columns: 1fr; }
+      .taller-visual { min-height: 300px; }
+      .taller-visual::after { background: linear-gradient(to bottom, transparent 55%, var(--bg-dark) 100%); }
+      .taller-content { padding: 3rem 1.5rem; }
+
+      .servicios { padding: 4.5rem 0; }
+      .servicios-top {
+        grid-template-columns: 1fr;
+        padding: 0 1.5rem 2rem;
+        gap: 1rem;
+      }
+      .servicio-row {
+        grid-template-columns: 3.5rem 1fr;
+        grid-template-rows: auto auto;
+        padding: 2rem 1.5rem;
+        gap: 0.5rem 1rem;
+      }
+      .srv-name { grid-column: 2; }
+      .srv-desc { grid-column: 1 / -1; margin-top: 0.5rem; }
+      .srv-badge { display: none; }
+
+      .proceso { padding: 4.5rem 1.5rem; }
+      .proceso-top { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .proceso-note { text-align: left; }
+      .proceso-steps {
+        grid-template-columns: 1fr 1fr;
+      }
+      .step:nth-child(2) { border-right: none; }
+      .step:nth-child(3) { border-top: 1px solid var(--border); }
+      .step:nth-child(4) { border-top: 1px solid var(--border); border-right: none; }
+
+      .galeria { padding: 4.5rem 1.5rem; }
+      .galeria-top { grid-template-columns: 1fr; }
+      .galeria-note { text-align: left; justify-self: start; }
+      .gal-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+      }
+      .gal-cell:nth-child(1) { grid-column: 1 / 2; grid-row: auto; height: 200px; }
+      .gal-cell:nth-child(2) { grid-column: 2 / 3; grid-row: auto; height: 200px; }
+      .gal-cell:nth-child(3) { grid-column: 1 / -1; grid-row: auto; height: 240px; }
+      .gal-cell:nth-child(4) { grid-column: 1 / 2; grid-row: auto; height: 200px; }
+      .gal-cell:nth-child(5) { grid-column: 2 / 3; grid-row: auto; height: 200px; }
+
+      .testimonios { padding: 4.5rem 1.5rem; }
+      .testimonios-top { grid-template-columns: 1fr; gap: 1.25rem; }
+      .testimonios-list { grid-template-columns: 1fr; gap: 2.5rem; }
+
+      .ubicacion { grid-template-columns: 1fr; }
+      .ubi-map { min-height: 280px; }
+      .ubi-content { padding: 3rem 1.5rem; border-left: none; border-top: 1px solid var(--border); }
+
+      .cta { grid-template-columns: 1fr; padding: 4.5rem 1.5rem; gap: 2.5rem; }
+
+      .footer {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 2rem 1.5rem;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero-headline { font-size: clamp(3rem, 12vw, 4.5rem); }
+      .proceso-steps { grid-template-columns: 1fr; }
+      .step { border-right: none; border-top: 1px solid var(--border); padding: 2rem 0; }
+      .step:first-child { border-top: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <nav class="nav" id="nav" aria-label="Navegacion principal">
+    <a href="#" class="nav-logo">Dalfino Muebles</a>
+    <ul class="nav-links">
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#proceso">Como trabajamos</a></li>
+      <li><a href="#galeria">Trabajos</a></li>
+      <li><a href="#ubicacion">Ubicacion</a></li>
+    </ul>
+    <a href="https://wa.me/543412148549" class="nav-cta" target="_blank" rel="noopener">Consultar</a>
+  </nav>
+
+  <main>
+
+    <!-- ============================================================
+         SECTION 1: HERO
+         Layout family: Editorial split
+    ============================================================ -->
+    <section class="hero" aria-label="Inicio">
+      <div class="hero-left">
+        <span class="label hero-kicker">Fabrica de Muebles &middot; Velez Sarsfield 5727 &middot; Rosario</span>
+        <h1 class="hero-headline">
+          Muebles<br />
+          <i>fabricados</i><br />
+          en Rosario
+        </h1>
+        <p class="hero-sub">
+          Hacemos el mueble que no encontras en catalogo. Si el espacio tiene medidas raras,
+          si el mueble que buscas no existe o si tenes algo que vale la pena recuperar,
+          eso es exactamente lo que hacemos.
+        </p>
+        <div class="hero-actions">
+          <a href="https://wa.me/543412148549?text=Hola%2C%20quiero%20consultar%20sobre%20un%20mueble" class="btn-primary" target="_blank" rel="noopener">
+            Consultar por WhatsApp
+          </a>
+          <a href="#servicios" class="btn-text">Ver servicios &darr;</a>
+        </div>
+      </div>
+      <div class="hero-right" aria-hidden="true">
+        <div class="hero-visual"></div>
+        <span class="hero-index">01</span>
+        <span class="hero-caption">Taller de fabricacion &middot; Rosario</span>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 2: EL TALLER
+         Layout family: Image-led section
+    ============================================================ -->
+    <section class="taller" id="taller" aria-label="El taller">
+      <div class="taller-visual" aria-hidden="true"></div>
+      <div class="taller-content">
+        <span class="label label-inv">El taller</span>
+        <h2 class="taller-heading">
+          Un lugar donde los<br />
+          muebles se <i>fabrican,</i><br />
+          no se importan
+        </h2>
+        <p class="taller-body">
+          Dalfino Muebles es una fabrica de Rosario. Trabajamos con madera maciza, melamina
+          y telas desde el taller de Velez Sarsfield. Cada pedido se discute, se planifica
+          y se ejecuta en el mismo lugar.
+        </p>
+        <p class="taller-body">
+          Hacemos tanto el placard que no cierra bien porque el ambiente tiene medidas fuera
+          de lo estandar, como el equipamiento completo de un local comercial. Si tiene
+          un problema con un espacio o una idea que no sabe como materializar, es el tipo
+          de trabajo que mas nos interesa.
+        </p>
+        <p class="taller-address-row">Velez Sarsfield 5727, Rosario, Santa Fe</p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 3: SERVICIOS
+         Layout family: Asymmetric numbered list
+    ============================================================ -->
+    <section class="servicios" id="servicios" aria-label="Servicios">
+      <div class="servicios-top reveal">
+        <div>
+          <span class="label">Lo que hacemos</span>
+          <h2 class="servicios-heading">
+            Cuatro<br /><i>servicios,</i><br />un taller
+          </h2>
+        </div>
+        <p class="servicios-intro">
+          Fabricacion a medida, restauracion, tapizado y mobiliario comercial.
+          Todo resuelto desde el mismo equipo en el mismo lugar.
+        </p>
+      </div>
+
+      <div class="servicio-row reveal">
+        <span class="srv-num">01</span>
+        <h3 class="srv-name">Muebles<br />a medida</h3>
+        <p class="srv-desc">
+          Placard que ocupa una pared completa hasta el techo, escritorio adaptado
+          a un rincon especifico, biblioteca para un ambiente con vigas. Si tiene
+          las medidas, nosotros fabricamos. Si no las tiene, pasamos a tomarlas.
+        </p>
+        <div class="srv-badge"><span class="badge">Servicio principal</span></div>
+      </div>
+
+      <div class="servicio-row reveal">
+        <span class="srv-num">02</span>
+        <h3 class="srv-name">Restauracion<br />y reparacion</h3>
+        <p class="srv-desc">
+          Mesa de comedor que cruje, silla con la pata floja, mueble heredado
+          que perdio el lustre pero sigue en pie. Muchas cosas que parecen
+          irrecuperables tienen arreglo. Traiga el mueble al taller y lo
+          evaluamos sin cargo.
+        </p>
+        <div class="srv-badge"><span class="badge">Disponible</span></div>
+      </div>
+
+      <div class="servicio-row reveal">
+        <span class="srv-num">03</span>
+        <h3 class="srv-name">Tapizado<br />y retapizado</h3>
+        <p class="srv-desc">
+          Sofa, sillon, cabecera o silla de comedor. Cambiamos la tela,
+          la espuma o ambas. Puede traer la tela que eligio o seleccionar
+          entre los materiales disponibles en el taller.
+        </p>
+        <div class="srv-badge"><span class="badge">Disponible</span></div>
+      </div>
+
+      <div class="servicio-row reveal">
+        <span class="srv-num">04</span>
+        <h3 class="srv-name">Mobiliario<br />comercial</h3>
+        <p class="srv-desc">
+          Mostradores, gondolas, muebles de recepcion, estanterias a medida para
+          locales. Trabajamos con emprendedores y negocios de Rosario que necesitan
+          que el espacio funcione bien y tenga buena presencia.
+        </p>
+        <div class="srv-badge"><span class="badge">Consultar</span></div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 4: PROCESO
+         Layout family: Horizontal timeline
+    ============================================================ -->
+    <section class="proceso" id="proceso" aria-label="Como trabajamos">
+      <div class="proceso-top reveal">
+        <div>
+          <span class="label">Como trabajamos</span>
+          <h2 class="proceso-heading">Del primer mensaje<br />al mueble instalado</h2>
+        </div>
+        <p class="proceso-note">
+          El proceso es siempre el mismo, independientemente del trabajo.
+          Simple y sin vueltas.
+        </p>
+      </div>
+      <div class="proceso-steps">
+        <div class="step reveal">
+          <p class="step-number">01</p>
+          <h3 class="step-name">Consulta</h3>
+          <p class="step-desc">
+            Nos manda un mensaje por WhatsApp o pasa por el taller. Cuente que necesita,
+            con medidas si las tiene, o con fotos del espacio. Sin compromiso y sin cargo.
+          </p>
+        </div>
+        <div class="step reveal">
+          <p class="step-number">02</p>
+          <h3 class="step-name">Medicion y presupuesto</h3>
+          <p class="step-desc">
+            Si el trabajo lo requiere, coordinamos una visita para tomar medidas en el
+            lugar. Despues enviamos el presupuesto por escrito con todos los detalles.
+          </p>
+        </div>
+        <div class="step reveal">
+          <p class="step-number">03</p>
+          <h3 class="step-name">Fabricacion en el taller</h3>
+          <p class="step-desc">
+            Con el pedido confirmado y la sena abonada, empieza la fabricacion. Le avisamos
+            por WhatsApp cuando el mueble este listo para retirar o entregar.
+          </p>
+        </div>
+        <div class="step reveal">
+          <p class="step-number">04</p>
+          <h3 class="step-name">Entrega e instalacion</h3>
+          <p class="step-desc">
+            Coordinamos la entrega a su direccion. Si el mueble necesita armado o
+            instalacion, lo hacemos nosotros en el lugar que nos indique.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 5: GALERIA
+         Layout family: Asymmetric gallery grid
+    ============================================================ -->
+    <section class="galeria" id="galeria" aria-label="Trabajos realizados">
+      <div class="galeria-top reveal">
+        <div>
+          <span class="label">Trabajos realizados</span>
+          <h2 class="galeria-heading">
+            Lo que sale<br />
+            del <i>taller</i>
+          </h2>
+        </div>
+        <p class="galeria-note">
+          Cada trabajo es distinto porque cada espacio es distinto.
+          No hay dos pedidos iguales.
+        </p>
+      </div>
+      <div class="gal-grid reveal">
+        <div class="gal-cell">
+          <div class="gal-fill"></div>
+          <span class="gal-label">Placard a medida con dos cuerpos</span>
+        </div>
+        <div class="gal-cell">
+          <div class="gal-fill"></div>
+          <span class="gal-label">Escritorio en roble veteado</span>
+        </div>
+        <div class="gal-cell">
+          <div class="gal-fill"></div>
+          <span class="gal-label">Mostrador para local comercial</span>
+        </div>
+        <div class="gal-cell">
+          <div class="gal-fill"></div>
+          <span class="gal-label">Mesa de comedor con seis sillas</span>
+        </div>
+        <div class="gal-cell">
+          <div class="gal-fill"></div>
+          <span class="gal-label">Biblioteca empotrada con escalera</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 6: TESTIMONIOS
+         Layout family: Narrative testimonial layout
+    ============================================================ -->
+    <section class="testimonios" id="testimonios" aria-label="Que dicen los clientes">
+      <div class="testimonios-top reveal">
+        <h2 class="testimonios-heading">
+          Lo que dicen<br />
+          los que ya<br />
+          trabajaron con nosotros
+        </h2>
+        <p class="testimonios-sub">
+          Tres situaciones distintas que resolvimos con el mismo equipo y el mismo taller.
+          Nada de frases armadas: asi lo cuentan ellos.
+        </p>
+      </div>
+      <div class="testimonios-list">
+        <article class="testimonio reveal">
+          <span class="testimonio-open" aria-hidden="true">&ldquo;</span>
+          <blockquote class="testimonio-quote">
+            Teniamos un placard viejo que no cerraba bien y ocupaba mal el espacio.
+            Les pedi que hicieran uno nuevo aprovechando todo el ancho de la pared
+            hasta el techo. Vinieron a medir, mandaron el presupuesto en dos dias
+            y en tres semanas lo teniamos instalado. Exactamente lo que habiamos pedido.
+          </blockquote>
+          <p class="testimonio-author">Marcela y Diego</p>
+          <p class="testimonio-context">Placard a medida &middot; Departamento en centro de Rosario</p>
+        </article>
+
+        <article class="testimonio reveal">
+          <span class="testimonio-open" aria-hidden="true">&ldquo;</span>
+          <blockquote class="testimonio-quote">
+            Lleve un sofa de tres cuerpos que era de mi vieja. La tela estaba rota,
+            la espuma hundida, pero la estructura seguia bien y no queria tirarlo.
+            Lo retapizaron, cambiaron la espuma y eligieron una tela parecida a la
+            original. Cuando lo vi terminado casi no lo reconocia. Esta mejor que
+            cuando era nuevo.
+          </blockquote>
+          <p class="testimonio-author">Graciela</p>
+          <p class="testimonio-context">Retapizado de sofa heredado &middot; Rosario norte</p>
+        </article>
+
+        <article class="testimonio reveal">
+          <span class="testimonio-open" aria-hidden="true">&ldquo;</span>
+          <blockquote class="testimonio-quote">
+            Abri un local de ropa y necesitaba muebles que no se veian en ningun
+            catalogo de mobiliario comercial. Un mostrador con medidas especificas
+            y un sistema de percheros fijo contra la pared. Lo resolvieron sin problema
+            y ademas me sugirieron un cambio en el mostrador que termino quedando
+            mucho mejor de lo que yo habia pensado.
+          </blockquote>
+          <p class="testimonio-author">Romina</p>
+          <p class="testimonio-context">Equipamiento de local comercial &middot; Rosario</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 7: UBICACION
+         Layout family: Location-focused section
+    ============================================================ -->
+    <section class="ubicacion" id="ubicacion" aria-label="Donde encontrarnos">
+      <div class="ubi-map" aria-hidden="true">
+        <div class="ubi-pin">
+          <div class="ubi-pin-dot"></div>
+          <div class="ubi-pin-tag">Dalfino Muebles</div>
+        </div>
+        <span class="ubi-street">Velez Sarsfield 5727</span>
+      </div>
+      <div class="ubi-content">
+        <span class="label">Donde encontrarnos</span>
+        <h2 class="ubi-heading">
+          El taller esta<br />
+          en Rosario,<br />
+          zona sudoeste
+        </h2>
+        <div class="ubi-rows">
+          <div class="ubi-row">
+            <span class="ubi-row-key">Direccion</span>
+            <span class="ubi-row-val">
+              Velez Sarsfield 5727<br />
+              Rosario, Santa Fe
+            </span>
+          </div>
+          <div class="ubi-row">
+            <span class="ubi-row-key">Telefono</span>
+            <span class="ubi-row-val">
+              <a href="tel:+543412148549">+54 341 214-8549</a>
+            </span>
+          </div>
+          <div class="ubi-row">
+            <span class="ubi-row-key">WhatsApp</span>
+            <span class="ubi-row-val">
+              <a href="https://wa.me/543412148549" target="_blank" rel="noopener">Escribir al taller</a>
+            </span>
+          </div>
+          <div class="ubi-row">
+            <span class="ubi-row-key">Horario</span>
+            <span class="ubi-row-val">
+              Lunes a viernes: 8 a 18 hs<br />
+              Sabados: 8 a 13 hs
+            </span>
+          </div>
+          <div class="ubi-row">
+            <span class="ubi-row-key">Presupuesto</span>
+            <span class="ubi-row-val">Sin cargo. Siempre.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 8: CTA WHATSAPP
+         Layout family: Full-bleed split section
+    ============================================================ -->
+    <section class="cta" aria-label="Contacto">
+      <div>
+        <span class="label" style="color: rgba(250,247,242,0.45);">Consultenos sin cargo</span>
+        <h2 class="cta-heading">
+          Mande<br />
+          un mensaje<br />
+          y coordinamos
+        </h2>
+      </div>
+      <div class="cta-right">
+        <p class="cta-body">
+          Cuente que necesita. Si tiene medidas, mejor. Si no, podemos
+          coordinar una visita para tomarlas nosotros. El presupuesto
+          es siempre sin cargo y sin compromiso.
+        </p>
+        <a href="https://wa.me/543412148549?text=Hola%2C%20quiero%20consultar%20sobre%20un%20mueble" class="btn-wa" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          Escribir al taller
+        </a>
+        <p class="cta-secondary">+54 341 214-8549 &middot; Rosario, Argentina</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <span class="footer-brand">Dalfino Muebles &middot; Rosario</span>
+    <span class="footer-data">Velez Sarsfield 5727 &middot; +54 341 214-8549</span>
+  </footer>
+
+  <script>
+    // Nav scroll state
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 60);
+    }, { passive: true });
+
+    // Scroll reveal
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  </script>
+
+</body>
+</html>

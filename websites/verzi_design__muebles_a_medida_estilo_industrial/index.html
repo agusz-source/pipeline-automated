@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verzi Design — Muebles a Medida Estilo Industrial · Rosario</title>
+  <meta name="description" content="Muebles de hierro y madera a medida en Rosario. Trabajo artesanal con identidad industrial. Gaboto 53, Rosario Sud. Tel: +54 341 271-0537">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="#" class="nav__logo">
+        <span class="nav__logo-mark">V</span>
+        <span class="nav__logo-text">Verzi Design</span>
+      </a>
+      <button class="nav__toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav__links" id="navLinks" role="list">
+        <li><a href="#servicios">Servicios</a></li>
+        <li><a href="#nosotros">Nosotros</a></li>
+        <li><a href="#testimonios">Reseñas</a></li>
+        <li><a href="#contacto" class="nav__cta">Consultar</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__content">
+      <p class="hero__eyebrow">Herrería · Madera · Diseño industrial · Rosario</p>
+      <h1 class="hero__title">
+        Hacemos el mueble<br>
+        que no encontrás<br>
+        <em>en ningún local.</em>
+      </h1>
+      <p class="hero__sub">Cada pieza sale de este taller. Con medidas exactas para tu espacio y con el hierro soldado por las mismas manos que lo diseñaron.</p>
+      <div class="hero__actions">
+        <a href="https://wa.me/5493412710537?text=Hola%2C%20quiero%20consultar%20por%20un%20mueble%20a%20medida" class="btn btn--primary" target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Pedir presupuesto
+        </a>
+        <a href="#servicios" class="btn btn--ghost">Ver servicios</a>
+      </div>
+    </div>
+    <div class="hero__visual" aria-hidden="true">
+      <div class="hero__frame">
+        <div class="hero__frame-corner hero__frame-corner--tl"></div>
+        <div class="hero__frame-corner hero__frame-corner--br"></div>
+        <div class="hero__badge">
+          <span class="hero__badge-stars">★★★★★</span>
+          <span class="hero__badge-score">4.8</span>
+          <span class="hero__badge-label">47 reseñas en Google</span>
+        </div>
+        <div class="hero__spec-list">
+          <div class="hero__spec">
+            <span class="hero__spec-key">Ubicación</span>
+            <span class="hero__spec-val">Gaboto 53, Rosario Sud</span>
+          </div>
+          <div class="hero__spec">
+            <span class="hero__spec-key">Especialidad</span>
+            <span class="hero__spec-val">Hierro · Madera · A medida</span>
+          </div>
+          <div class="hero__spec">
+            <span class="hero__spec-key">Presupuesto</span>
+            <span class="hero__spec-val">Sin cargo · Mismo día</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICIOS -->
+  <section class="servicios" id="servicios">
+    <div class="servicios__wrap">
+      <header class="servicios__header">
+        <span class="label">Lo que hacemos</span>
+        <h2 class="servicios__title">Cuatro cosas,<br>bien hechas.</h2>
+      </header>
+
+      <div class="servicios__grid">
+
+        <article class="servicio s1">
+          <span class="servicio__num">01</span>
+          <h3 class="servicio__name">Mesas de hierro y madera</h3>
+          <p class="servicio__desc">La estructura la soldamos nosotros, la madera la elegís vos. Comedor, escritorio, ratona. En el espesor exacto y con el acabado que se adapta a tu espacio.</p>
+          <ul class="servicio__specs">
+            <li>Caño estructural o hierro ángulo</li>
+            <li>Madera maciza o reconstructida</li>
+            <li>Pintura al horno o pátina oxidada</li>
+          </ul>
+        </article>
+
+        <article class="servicio s2">
+          <span class="servicio__num">02</span>
+          <h3 class="servicio__name">Estanterías y bibliotecas</h3>
+          <p class="servicio__desc">Para casas, estudios, locales. Con caños, ángulos o hierro plano. Montadas en pared o autoportantes. Cada una pensada para el espacio donde va.</p>
+        </article>
+
+        <article class="servicio s3">
+          <span class="servicio__num">03</span>
+          <h3 class="servicio__name">Puertas y portones</h3>
+          <p class="servicio__desc">Corredizas, batientes, con vidrio templado o chapa llena. Interiores o exteriores. Medidas a pedido, diseño coordinado con el cliente.</p>
+        </article>
+
+        <article class="servicio s4">
+          <span class="servicio__num">04</span>
+          <div class="servicio__body">
+            <h3 class="servicio__name">Equipamiento para comercios</h3>
+            <p class="servicio__desc">Restaurantes, bares, estudios de diseño, tiendas. Mostradores, percheros, mesas altas, banquetas y todo lo que define el carácter del lugar. Trabajamos con arquitectos e interioristas.</p>
+          </div>
+          <a href="https://wa.me/5493412710537?text=Hola%2C%20tengo%20un%20local%20y%20quiero%20consultar%20sobre%20equipamiento" class="servicio__cta" target="_blank" rel="noopener">Contanos el proyecto →</a>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- NOSOTROS -->
+  <section class="nosotros" id="nosotros">
+    <div class="nosotros__wrap">
+      <div class="nosotros__text">
+        <span class="label label--light">Quiénes somos</span>
+        <h2>Un taller.<br>Una firma.</h2>
+        <p>Verzi Design arrancó como taller de herrería hace más de diez años en Rosario Sud. Con el tiempo fuimos incorporando diseño industrial al trabajo: no sólo fabricar, sino pensar cada pieza en función del espacio donde va a estar.</p>
+        <p>No subcontratamos. El mismo equipo que recibe el pedido es el que diseña, suelda, lija y entrega. Eso hace que podamos sostener la calidad y que cada trabajo tenga coherencia de principio a fin.</p>
+        <div class="nosotros__datos">
+          <div class="nosotros__dato">
+            <strong>+10 años</strong>
+            <span>en el rubro</span>
+          </div>
+          <div class="nosotros__dato">
+            <strong>Rosario</strong>
+            <span>con envío a toda la región</span>
+          </div>
+          <div class="nosotros__dato">
+            <strong>A medida</strong>
+            <span>sin excepción</span>
+          </div>
+        </div>
+      </div>
+      <div class="nosotros__aside" aria-hidden="true">
+        <div class="nosotros__grid-art">
+          <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="238" height="238" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <line x1="80" y1="1" x2="80" y2="239" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 5"/>
+            <line x1="160" y1="1" x2="160" y2="239" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 5"/>
+            <line x1="1" y1="80" x2="239" y2="80" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 5"/>
+            <line x1="1" y1="160" x2="239" y2="160" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 5"/>
+            <circle cx="80" cy="80" r="5" fill="currentColor"/>
+            <circle cx="160" cy="80" r="5" fill="currentColor"/>
+            <circle cx="80" cy="160" r="5" fill="currentColor"/>
+            <circle cx="160" cy="160" r="5" fill="currentColor"/>
+            <circle cx="1" cy="1" r="4" fill="currentColor"/>
+            <circle cx="239" cy="1" r="4" fill="currentColor"/>
+            <circle cx="1" cy="239" r="4" fill="currentColor"/>
+            <circle cx="239" cy="239" r="4" fill="currentColor"/>
+          </svg>
+        </div>
+        <blockquote class="nosotros__cita">
+          "El hierro no miente.<br>Lo que ves es lo que es."
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- RATING -->
+  <div class="rating-band">
+    <div class="rating-band__inner">
+      <div class="rating-band__score">
+        <span class="rating-band__num">4.8</span>
+        <div>
+          <span class="rating-band__stars">★★★★★</span>
+          <span class="rating-band__source">Google Reviews</span>
+        </div>
+      </div>
+      <span class="rating-band__sep" aria-hidden="true"></span>
+      <p class="rating-band__frase">47 personas que encargaron muebles en Rosario dejaron su reseña.</p>
+    </div>
+  </div>
+
+  <!-- TESTIMONIOS -->
+  <section class="testimonios" id="testimonios">
+    <div class="testimonios__wrap">
+      <header class="testimonios__header">
+        <span class="label">Lo que dicen</span>
+        <h2>Gente de Rosario<br>que ya pasó por el taller.</h2>
+      </header>
+      <div class="testimonios__grid">
+
+        <figure class="testimonio t-principal">
+          <div class="testimonio__estrellas">★★★★★</div>
+          <blockquote>
+            <p>"Estábamos reformando el departamento y necesitábamos una mesa de comedor para un espacio raro, con una columna en el medio. Ningún mueble de local entraba bien. Fui al taller, medimos todo y en tres semanas tenía la mesa exacta que necesitaba. Hierro negro con tablón de pino. Quedó mejor de lo que imaginaba."</p>
+          </blockquote>
+          <figcaption>
+            <strong>Mariana C.</strong>
+            <span>Barrio Refinería, Rosario</span>
+          </figcaption>
+        </figure>
+
+        <figure class="testimonio">
+          <div class="testimonio__estrellas">★★★★★</div>
+          <blockquote>
+            <p>"Abrí un bar y quería que el espacio tuviera personalidad. Verzi me hizo las mesas, los bancos y el mostrador. Cada vez que alguien entra pregunta dónde compré los muebles."</p>
+          </blockquote>
+          <figcaption>
+            <strong>Rodrigo B.</strong>
+            <span>Dueño de bar, Pichincha</span>
+          </figcaption>
+        </figure>
+
+        <figure class="testimonio">
+          <div class="testimonio__estrellas">★★★★☆</div>
+          <blockquote>
+            <p>"Pedí unas estanterías para mi estudio de arquitectura. El trato fue muy directo, sin vueltas. Me explicaron las opciones, acordamos un precio razonable y cumplieron con la fecha. Eso ya vale mucho."</p>
+          </blockquote>
+          <figcaption>
+            <strong>Lucía V.</strong>
+            <span>Arquitecta, Rosario Centro</span>
+          </figcaption>
+        </figure>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACTO -->
+  <section class="contacto" id="contacto">
+    <div class="contacto__wrap">
+      <div class="contacto__texto">
+        <span class="label label--light">Hablemos</span>
+        <h2>¿Tenés un espacio<br>y una idea?<br>Arrancamos.</h2>
+        <p>Mandanos un mensaje por WhatsApp con las medidas o una foto del lugar. Sin compromiso. El presupuesto es gratis y lo respondemos ese mismo día.</p>
+        <a href="https://wa.me/5493412710537?text=Hola%2C%20quiero%20consultar%20por%20un%20mueble%20a%20medida" class="btn btn--primary btn--lg" target="_blank" rel="noopener">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Escribir al taller
+        </a>
+        <div class="contacto__datos">
+          <p>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Gaboto 53, Rosario Sud
+          </p>
+          <p>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.44 2 2 0 0 1 3.59 1.23h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8a16 16 0 0 0 6 6l.8-.8a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 16z"/></svg>
+            +54 341 271-0537
+          </p>
+        </div>
+      </div>
+      <div class="contacto__mapa">
+        <div class="mapa-block">
+          <svg class="mapa-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <p>Gaboto 53<br><strong>Rosario Sud</strong><br><span>Santa Fe, Argentina</span></p>
+          <a href="https://maps.google.com/?q=Gaboto+53+Rosario+Argentina" target="_blank" rel="noopener" class="mapa-link">Ver en Google Maps →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__marca">
+        <span class="footer__nombre">Verzi Design</span>
+        <p>Herrería · Carpintería · Diseño industrial<br>Rosario, Santa Fe, Argentina</p>
+      </div>
+      <nav class="footer__nav" aria-label="Footer">
+        <a href="#servicios">Servicios</a>
+        <a href="#nosotros">Nosotros</a>
+        <a href="#testimonios">Reseñas</a>
+        <a href="https://wa.me/5493412710537" target="_blank" rel="noopener">WhatsApp</a>
+      </nav>
+    </div>
+    <div class="footer__fondo">
+      <p>© 2024 Verzi Design · Gaboto 53, Rosario Sud</p>
+    </div>
+  </footer>
+
+  <!-- BOTÓN WHATSAPP FLOTANTE -->
+  <a href="https://wa.me/5493412710537?text=Hola%2C%20quiero%20consultar%20por%20un%20mueble%20a%20medida" class="wa-float" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+
+  <script src="script.js"></script>
+</body>
+</html>

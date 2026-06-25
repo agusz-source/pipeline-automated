@@ -1,1 +1,29 @@
-{}
+[
+  {
+    "nombre": "España Amoblamientos",
+    "telefono": "+54 341 377-2892",
+    "direccion": "San Juan 1116",
+    "ciudad": "Rosario",
+    "puntaje": 4.7,
+    "resenas": 11,
+    "categoryName": "Tienda de muebles",
+    "categories": [
+      "Tienda de muebles"
+    ],
+    "score": "84"
+  },
+  {
+    "nombre": "NIG Amoblamientos",
+    "telefono": "+54 341 369-8689",
+    "direccion": "Av. Ntra Sra del Rosario",
+    "ciudad": "Rosario",
+    "puntaje": 5,
+    "resenas": 2,
+    "categoryName": "Carpintería",
+    "categories": [
+      "Carpintería",
+      "Fábrica de muebles"
+    ],
+    "score": "81"
+  }
+]

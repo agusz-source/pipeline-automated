@@ -1,0 +1,39 @@
+{
+  "pagos": [
+    {
+      "nombre": "Kopp Amoblamientos",
+      "telefono": "manual-1781906970703",
+      "monto": 34500.0,
+      "moneda": "ARS",
+      "estado": "parcial",
+      "fecha": "2026-04-16",
+      "fecha_vencimiento": "2026-06-26",
+      "servicio": "Sitio web - SEO",
+      "notas": "6 cuotas de $34.500 ARS sin interés (total $150 USD). Cuotas 1 y 2 abonadas. Debe cuota 3 de 6. Post-pago: $5 USD/mes. ⚠️ Vence 26/06."
+    },
+    {
+      "nombre": "Ang Garden's",
+      "telefono": "manual-1781907128288",
+      "monto": 84000.0,
+      "moneda": "ARS",
+      "estado": "pagado",
+      "fecha": "2026-06-10",
+      "servicio": "Sitio web",
+      "notas": "Abonó con un unico pago."
+    },
+    {
+      "nombre": "Kikuria Portfolio",
+      "telefono": "manual-1782162739509",
+      "monto": 100.0,
+      "moneda": "USD",
+      "estado": "parcial",
+      "fecha": "2026-06-22",
+      "servicio": "Sitio web Dibujo",
+      "notas": ""
+    }
+  ],
+  "config": {
+    "precio_sugerido": 50000,
+    "moneda_default": "USD"
+  }
+}
