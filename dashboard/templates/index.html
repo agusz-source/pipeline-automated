@@ -1,508 +1,410 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binario Websites — Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binario — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<div class="app">
-    <aside class="sidebar">
-        <div class="logo">
-            <div class="logo-icon">B</div>
-            <span class="logo-text">binario<br>websites</span>
-        </div>
-        <nav class="nav">
-            <a href="#" class="nav-item active" data-page="dashboard">
-                <i class="fas fa-chart-pie"></i><span>Dashboard</span>
-            </a>
-            <a href="#" class="nav-item" data-page="leads">
-                <i class="fas fa-users"></i><span>Leads</span>
-            </a>
-            <a href="#" class="nav-item" data-page="renovaciones">
-                <i class="fas fa-calendar-alt"></i>
-                <span>Renovaciones</span>
-                <span class="nav-badge" id="renewal-badge" style="display:none"></span>
-            </a>
-            <a href="#" class="nav-item" data-page="finanzas">
-                <i class="fas fa-dollar-sign"></i><span>Finanzas</span>
-            </a>
-            <a href="#" class="nav-item" data-page="analytics">
-                <i class="fas fa-chart-line"></i><span>Analytics</span>
-            </a>
-            <a href="#" class="nav-item" data-page="deployments">
-                <i class="fas fa-rocket"></i><span>Deployments</span>
-            </a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="system-status">
-                <span class="status-dot online"></span>
-                <span>Sistema activo</span>
-            </div>
-        </div>
-    </aside>
-
-    <main class="main">
-        <header class="header">
-            <div class="header-left">
-                <h1 class="page-title" id="page-title">Dashboard</h1>
-                <div class="executive-summary" id="executive-summary">
-                    <span class="summary-badge">Resumen</span>
-                    <span class="summary-text" id="summary-text">Cargando...</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="update-info">
-                    <i class="fas fa-sync-alt" id="refresh-btn"></i>
-                    <span id="update-time">--:--</span>
-                </div>
-            </div>
-        </header>
-
-        <!-- ── Dashboard Page ────────────────────────────────── -->
-        <div id="page-dashboard" class="page active">
-            <div class="kpi-grid" id="kpi-grid"></div>
-
-            <!-- Pipeline visualization -->
-            <div class="card pipeline-card">
-                <div class="card-header">
-                    <h3>Pipeline completo</h3>
-                    <p class="card-sub">Scraped &rarr; Filtrados &rarr; Contactados &rarr; Respondieron &rarr; Interesados &rarr; Web generada &rarr; Live &rarr; Clientes</p>
-                </div>
-                <div class="pipeline-container" id="pipeline"></div>
-            </div>
-
-            <div class="charts-row">
-                <div class="card chart-card">
-                    <div class="card-header">
-                        <h3>Actividad de outreach</h3>
-                        <p class="card-sub">Mensajes enviados — últimos 30 días</p>
-                    </div>
-                    <canvas id="activity-chart"></canvas>
-                </div>
-                <div class="card categories-card">
-                    <div class="card-header">
-                        <h3>Categorías</h3>
-                        <p class="card-sub">Distribución por rubro</p>
-                    </div>
-                    <div id="categories-list"></div>
-                </div>
-            </div>
-
-            <div class="card deployments-card">
-                <div class="card-header">
-                    <h3>Últimos sitios publicados</h3>
-                    <p class="card-sub">Sitios con URL activa</p>
-                </div>
-                <div id="deployments-timeline" class="timeline"></div>
-            </div>
-        </div>
-
-        <!-- ── Leads Page ────────────────────────────────────── -->
-        <div id="page-leads" class="page">
-            <div class="card full-width">
-                <div class="card-header">
-                    <h3>Todos los leads</h3>
-                    <div class="table-controls">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="search-leads" placeholder="Buscar leads...">
-                        </div>
-                        <select id="status-filter" class="filter-select">
-                            <option value="all">Todos</option>
-                            <option value="pending">Pendiente</option>
-                            <option value="sent">Enviado</option>
-                            <option value="interested">Interesado</option>
-                            <option value="rejected">Rechazado</option>
-                            <option value="website">Web lista</option>
-                            <option value="deployed">Publicado</option>
-                            <option value="client">Cliente</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="table-wrapper">
-                    <table class="data-table" id="leads-table">
-                        <thead>
-                            <tr>
-                                <th data-sort="nombre">Negocio <i class="fas fa-sort"></i></th>
-                                <th data-sort="categoria">Categoría <i class="fas fa-sort"></i></th>
-                                <th data-sort="score">Score <i class="fas fa-sort"></i></th>
-                                <th>Teléfono</th>
-                                <th data-sort="enviado">Estado <i class="fas fa-sort"></i></th>
-                                <th>Respuesta</th>
-                                <th>Sitio</th>
-                                <th>Pago</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leads-tbody"></tbody>
-                    </table>
-                </div>
-                <div class="pagination" id="leads-pagination"></div>
-            </div>
-        </div>
-
-        <!-- ── Renovaciones Page ─────────────────────────────── -->
-        <div id="page-renovaciones" class="page">
-            <div class="renewals-alert-banner" id="renewals-banner" style="display:none">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span id="renewals-banner-text"></span>
-            </div>
-
-            <div class="renewals-grid">
-                <!-- 7 days -->
-                <div class="card renewal-card critical">
-                    <div class="card-header">
-                        <h3><span class="renewal-dot red"></span>Vencen en 7 días</h3>
-                        <span class="badge badge-critical" id="badge-7d">0</span>
-                    </div>
-                    <div class="renewal-list" id="renewals-7d">
-                        <div class="empty-state"><i class="fas fa-check-circle"></i><p>Sin vencimientos urgentes</p></div>
-                    </div>
-                </div>
-
-                <!-- 30 days -->
-                <div class="card renewal-card warning">
-                    <div class="card-header">
-                        <h3><span class="renewal-dot yellow"></span>Vencen en 30 días</h3>
-                        <span class="badge badge-warning" id="badge-30d">0</span>
-                    </div>
-                    <div class="renewal-list" id="renewals-30d">
-                        <div class="empty-state"><i class="fas fa-calendar-check"></i><p>Sin vencimientos próximos</p></div>
-                    </div>
-                </div>
-
-                <!-- 60 days -->
-                <div class="card renewal-card upcoming">
-                    <div class="card-header">
-                        <h3><span class="renewal-dot green"></span>Vencen en 60 días</h3>
-                        <span class="badge badge-upcoming" id="badge-60d">0</span>
-                    </div>
-                    <div class="renewal-list" id="renewals-60d">
-                        <div class="empty-state"><i class="fas fa-calendar"></i><p>Sin vencimientos en horizonte</p></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Set renewal dates -->
-            <div class="card full-width" style="margin-top:1.5rem">
-                <div class="card-header">
-                    <h3>Gestionar renovaciones de un cliente</h3>
-                    <p class="card-sub">Buscar cliente y actualizar fechas de renovación</p>
-                </div>
-                <div class="renewal-manager">
-                    <div class="form-group" style="max-width:400px">
-                        <label>Seleccionar cliente</label>
-                        <select id="renewal-lead-select" class="form-input">
-                            <option value="">— Seleccionar lead —</option>
-                        </select>
-                    </div>
-                    <div class="renewal-dates-grid" id="renewal-dates-form" style="display:none">
-                        <div class="form-group">
-                            <label>Fecha de entrega</label>
-                            <input type="date" id="ren-entrega" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label>Renovación sitio web</label>
-                            <input type="date" id="ren-web" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label>Renovación hosting</label>
-                            <input type="date" id="ren-hosting" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label>Renovación mantenimiento</label>
-                            <input type="date" id="ren-mant" class="form-input">
-                        </div>
-                        <div class="form-group form-group-action">
-                            <button class="btn btn-primary" id="save-renewal-btn">
-                                <i class="fas fa-save"></i> Guardar fechas
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ── Finanzas Page ─────────────────────────────────── -->
-        <div id="page-finanzas" class="page">
-            <div class="kpi-grid" id="finanzas-kpi-grid"></div>
-            <div class="charts-row">
-                <div class="card chart-card">
-                    <div class="card-header">
-                        <h3>Ingresos mensuales</h3>
-                        <p class="card-sub">ARS cobrado por mes — últimos 6 meses</p>
-                    </div>
-                    <canvas id="revenue-chart"></canvas>
-                </div>
-                <div class="card chart-card">
-                    <div class="card-header">
-                        <h3>Estado de pagos</h3>
-                        <p class="card-sub">Distribución por estado</p>
-                    </div>
-                    <div class="donut-wrapper">
-                        <canvas id="payment-status-chart"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="card full-width">
-                <div class="card-header">
-                    <div>
-                        <h3>Registro de pagos</h3>
-                        <p class="card-sub">Historial de cobros y pendientes</p>
-                    </div>
-                    <button class="btn btn-primary" id="add-payment-btn">
-                        <i class="fas fa-plus"></i> Registrar pago
-                    </button>
-                </div>
-                <div class="table-wrapper">
-                    <table class="data-table" id="payments-table">
-                        <thead>
-                            <tr>
-                                <th>Cliente</th><th>Servicio</th><th>Monto</th>
-                                <th>Estado</th><th>Fecha</th><th>Notas</th><th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="payments-tbody"></tbody>
-                    </table>
-                </div>
-                <div class="empty-state" id="payments-empty" style="display:none">
-                    <i class="fas fa-dollar-sign"></i>
-                    <p>Sin pagos registrados aún</p>
-                    <button class="btn btn-primary" style="margin-top:1rem" onclick="document.getElementById('add-payment-btn').click()">Registrar primer pago</button>
-                </div>
-            </div>
-            <div class="card full-width">
-                <div class="card-header">
-                    <h3>Configuración</h3>
-                    <p class="card-sub">Precio base y moneda por defecto</p>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Precio sugerido (ARS)</label>
-                        <input type="number" id="config-precio" class="form-input" placeholder="50000">
-                    </div>
-                    <div class="form-group">
-                        <label>Moneda por defecto</label>
-                        <select id="config-moneda" class="form-input">
-                            <option value="ARS">ARS $</option>
-                            <option value="USD">USD $</option>
-                        </select>
-                    </div>
-                    <div class="form-group form-group-action">
-                        <button class="btn btn-primary" id="save-config-btn">Guardar config</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ── Analytics Page ────────────────────────────────── -->
-        <div id="page-analytics" class="page">
-            <div class="card full-width">
-                <div class="card-header"><h3>Rendimiento por categoría</h3></div>
-                <div class="analytics-grid" id="analytics-grid"></div>
-            </div>
-        </div>
-
-        <!-- ── Deployments Page ──────────────────────────────── -->
-        <div id="page-deployments" class="page">
-            <div class="card full-width">
-                <div class="card-header"><h3>Todos los sitios publicados</h3></div>
-                <div class="timeline full" id="deployments-full"></div>
-            </div>
-        </div>
-    </main>
-</div>
-
-<!-- ── Modal: Edit Lead ──────────────────────────────────────── -->
-<div class="modal-overlay" id="modal-edit-lead">
-    <div class="modal modal-lg">
-        <div class="modal-header">
-            <h3><i class="fas fa-edit" style="color:var(--accent);margin-right:8px"></i>Editar Lead</h3>
-            <button class="modal-close" data-close="modal-edit-lead">&times;</button>
-        </div>
-        <div class="modal-body">
-            <input type="hidden" id="edit-telefono">
-
-            <!-- Tab nav -->
-            <div class="modal-tabs">
-                <button class="modal-tab active" data-tab="lead-basic">Datos</button>
-                <button class="modal-tab" data-tab="lead-renewal">Renovaciones</button>
-                <button class="modal-tab" data-tab="lead-conversation">Conversación</button>
-            </div>
-
-            <!-- Tab: Basic -->
-            <div class="modal-tab-content active" id="tab-lead-basic">
-                <div class="form-group">
-                    <label>Negocio</label>
-                    <input type="text" id="edit-nombre" class="form-input readonly" readonly>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Mensaje enviado</label>
-                        <select id="edit-enviado" class="form-input">
-                            <option value="">NO</option>
-                            <option value="SI">SI</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha de envío</label>
-                        <input type="datetime-local" id="edit-fecha-envio" class="form-input">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Respuesta recibida</label>
-                        <select id="edit-estado-respuesta" class="form-input">
-                            <option value="">— Sin respuesta —</option>
-                            <option value="interest">Interesado</option>
-                            <option value="price_request">Pidió precio</option>
-                            <option value="info_request">Pidió info</option>
-                            <option value="follow_up">Follow-up</option>
-                            <option value="positive_intent">Intención positiva</option>
-                            <option value="rejection">Rechazo</option>
-                            <option value="neutral">Neutral</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha de respuesta</label>
-                        <input type="datetime-local" id="edit-fecha-respuesta" class="form-input">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Project path (ruta local)</label>
-                    <input type="text" id="edit-project-path" class="form-input" placeholder="/ruta/al/proyecto">
-                </div>
-                <div class="form-group">
-                    <label>URL publicada</label>
-                    <input type="text" id="edit-live-url" class="form-input" placeholder="https://...">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Links enviados</label>
-                        <select id="edit-enviado-links" class="form-input">
-                            <option value="">NO</option>
-                            <option value="SI">SI</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha envío links</label>
-                        <input type="datetime-local" id="edit-fecha-links" class="form-input">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Notas</label>
-                    <textarea id="edit-notas" class="form-input" rows="2" placeholder="Notas sobre el cliente..."></textarea>
-                </div>
-            </div>
-
-            <!-- Tab: Renewal -->
-            <div class="modal-tab-content" id="tab-lead-renewal">
-                <div class="form-group">
-                    <label>Fecha de entrega del sitio</label>
-                    <input type="date" id="edit-fecha-entrega" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label>Renovación sitio web</label>
-                    <input type="date" id="edit-ren-web" class="form-input">
-                    <p class="form-hint">Típicamente 1 año después de la entrega</p>
-                </div>
-                <div class="form-group">
-                    <label>Renovación hosting</label>
-                    <input type="date" id="edit-ren-hosting" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label>Renovación mantenimiento</label>
-                    <input type="date" id="edit-ren-mant" class="form-input">
-                </div>
-            </div>
-
-            <!-- Tab: Conversation -->
-            <div class="modal-tab-content" id="tab-lead-conversation">
-                <div class="conversation-container" id="conversation-timeline">
-                    <div class="empty-state"><i class="fas fa-comments"></i><p>Sin mensajes registrados</p></div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" data-close="modal-edit-lead">Cancelar</button>
-            <button class="btn btn-primary" id="save-lead-btn">
-                <i class="fas fa-save"></i> Guardar cambios
-            </button>
-        </div>
+<!-- ── Sidebar ──────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">B</div>
+    <div>
+      <div class="logo-name">Binario</div>
+      <span class="logo-sub">Websites</span>
     </div>
+  </div>
+
+  <nav class="nav">
+    <a class="nav-item active" data-page="dashboard" onclick="navigate('dashboard', this)">
+      <span class="nav-icon">◎</span> Dashboard
+    </a>
+    <a class="nav-item" data-page="pipeline" onclick="navigate('pipeline', this)">
+      <span class="nav-icon">⚡</span> Pipeline
+    </a>
+    <a class="nav-item" data-page="kanban" onclick="navigate('kanban', this)">
+      <span class="nav-icon">⬛</span> Kanban
+    </a>
+    <a class="nav-item" data-page="leads" onclick="navigate('leads', this)">
+      <span class="nav-icon">◉</span> Leads
+    </a>
+    <a class="nav-item" data-page="websites" onclick="navigate('websites', this)">
+      <span class="nav-icon">⬡</span> Websites
+    </a>
+    <a class="nav-item" data-page="analytics" onclick="navigate('analytics', this)">
+      <span class="nav-icon">▲</span> Analytics
+    </a>
+    <a class="nav-item" data-page="finanzas" onclick="navigate('finanzas', this)">
+      <span class="nav-icon">◈</span> Finanzas
+    </a>
+    <a class="nav-item" data-page="renovaciones" onclick="navigate('renovaciones', this)">
+      <span class="nav-icon">◷</span> Renovaciones
+      <span class="nav-badge" id="renewal-badge" style="display:none"></span>
+    </a>
+    <a class="nav-item" data-page="templates" onclick="navigate('templates', this)">
+      <span class="nav-icon">☰</span> Templates
+    </a>
+    <a class="nav-item" data-page="settings" onclick="navigate('settings', this)">
+      <span class="nav-icon">⚙</span> Ajustes
+    </a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <div class="system-status">
+      <span class="status-dot" id="ws-dot"></span>
+      <span id="ws-label">Conectando...</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main ─────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="flex items-center gap-12">
+      <div class="page-title" id="header-title">Dashboard</div>
+      <div id="active-jobs-indicator"></div>
+    </div>
+    <div class="header-actions">
+      <div class="search-bar" id="global-search" style="display:none">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Buscar lead..." id="global-search-input" oninput="globalSearch(this.value)">
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="refresh()">↻ Actualizar</button>
+      <div id="header-cta"></div>
+    </div>
+  </header>
+
+  <div class="content" id="content">
+
+    <!-- ── Dashboard ──────────────────────────────────── -->
+    <div id="page-dashboard" class="page active">
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi skeleton" style="height:84px"></div>
+        <div class="kpi skeleton" style="height:84px"></div>
+        <div class="kpi skeleton" style="height:84px"></div>
+        <div class="kpi skeleton" style="height:84px"></div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-title">Embudo de conversión</div>
+          <div id="funnel-bars" class="funnel-bars"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Leads por etapa</div>
+          <div class="chart-container"><canvas id="stage-chart"></canvas></div>
+        </div>
+        <div class="card full">
+          <div class="card-title">Leads por categoría</div>
+          <div class="table-wrap" id="cat-table-wrap">
+            <table>
+              <thead><tr>
+                <th>Categoría</th><th>Total</th><th>Enviados</th>
+                <th>Interesados</th><th>Convertidos</th><th>% Interés</th>
+              </tr></thead>
+              <tbody id="cat-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Pipeline ───────────────────────────────────── -->
+    <div id="page-pipeline" class="page">
+      <div class="pipeline-grid" id="pipeline-stage-cards"></div>
+
+      <div class="log-panel" id="log-panel">
+        <div class="log-panel-header">
+          <div class="log-panel-title">
+            <span>Terminal de logs</span>
+            <span id="log-job-label" style="color:var(--text-3);font-weight:400"></span>
+          </div>
+          <div class="flex gap-8">
+            <button class="btn btn-ghost btn-sm" onclick="clearLogs()">Limpiar</button>
+            <label class="flex items-center gap-8 text-sm text-muted">
+              <input type="checkbox" id="log-autoscroll" checked> Auto-scroll
+            </label>
+          </div>
+        </div>
+        <div class="log-entries" id="log-entries">
+          <div class="empty">
+            <div class="empty-icon">⬝</div>
+            <div class="empty-msg">Iniciá una etapa para ver los logs en tiempo real</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Kanban ──────────────────────────────────────── -->
+    <div id="page-kanban" class="page">
+      <div class="kanban-wrap" id="kanban-wrap">
+        <div class="kanban" id="kanban-board"></div>
+      </div>
+    </div>
+
+    <!-- ── Leads ──────────────────────────────────────── -->
+    <div id="page-leads" class="page">
+      <div class="flex items-center gap-12" style="margin-bottom:16px;flex-wrap:wrap">
+        <div class="search-bar" style="flex:1;min-width:200px">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="Buscar por nombre, teléfono, categoría..." id="leads-search" oninput="debounce(loadLeads, 300)()">
+        </div>
+        <div class="filter-pills" id="stage-pills"></div>
+        <button class="btn btn-primary btn-sm" onclick="openNewLeadModal()">+ Nuevo lead</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortLeads('nombre')">Nombre ↕</th>
+              <th onclick="sortLeads('categoria')">Categoría ↕</th>
+              <th>Teléfono</th>
+              <th onclick="sortLeads('score')">Score ↕</th>
+              <th>Etapa</th>
+              <th>Estado</th>
+              <th onclick="sortLeads('created_at')">Fecha ↕</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="leads-body"></tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center gap-12" style="margin-top:12px;justify-content:space-between">
+        <span id="leads-count" class="text-sm text-muted"></span>
+        <div class="flex gap-8" id="leads-pagination"></div>
+      </div>
+    </div>
+
+    <!-- ── Websites ────────────────────────────────────── -->
+    <div id="page-websites" class="page">
+      <div class="websites-grid" id="websites-grid"></div>
+    </div>
+
+    <!-- ── Analytics ──────────────────────────────────── -->
+    <div id="page-analytics" class="page">
+      <div class="kpi-grid" id="analytics-kpi-grid"></div>
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-title">Embudo completo</div>
+          <div id="analytics-funnel" class="funnel-bars"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Respuestas</div>
+          <div class="chart-container"><canvas id="responses-chart"></canvas></div>
+        </div>
+        <div class="card full">
+          <div class="card-title">Nuevos leads (últimos 30 días)</div>
+          <div class="chart-container" style="height:180px"><canvas id="timeline-chart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Finanzas ────────────────────────────────────── -->
+    <div id="page-finanzas" class="page">
+      <div class="kpi-grid" id="fin-kpi-grid"></div>
+      <div class="card">
+        <div class="flex items-center gap-12" style="margin-bottom:16px">
+          <div class="card-title" style="margin:0">Pagos</div>
+          <button class="btn btn-primary btn-sm ml-auto" onclick="openPaymentModal()">+ Registrar pago</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Cliente</th><th>Servicio</th><th>Monto</th>
+              <th>Estado</th><th>Fecha</th><th>Notas</th><th></th>
+            </tr></thead>
+            <tbody id="fin-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Renovaciones ────────────────────────────────── -->
+    <div id="page-renovaciones" class="page">
+      <div id="renewal-sections"></div>
+    </div>
+
+    <!-- ── Templates ──────────────────────────────────── -->
+    <div id="page-templates" class="page">
+      <div class="flex items-center gap-12" style="margin-bottom:16px">
+        <div class="section-title" style="margin:0">Templates de mensajes</div>
+        <button class="btn btn-primary btn-sm ml-auto" onclick="openTemplateModal()">+ Nuevo template</button>
+      </div>
+      <div id="templates-list"></div>
+    </div>
+
+    <!-- ── Settings ───────────────────────────────────── -->
+    <div id="page-settings" class="page">
+      <div class="card">
+        <div class="card-title">Base de datos</div>
+        <div class="settings-section">
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Migrar desde estado.csv</div>
+              <div class="settings-desc">Importa todos los leads del CSV a SQLite. Seguro — no duplica.</div>
+            </div>
+            <button class="btn btn-ghost btn-sm settings-control" onclick="runMigration()">Migrar ahora</button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Dataset.json</div>
+              <div class="settings-desc" id="dataset-status-text">Verificando...</div>
+            </div>
+            <button class="btn btn-ghost btn-sm settings-control" onclick="loadDatasetStatus()">Verificar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Configuración de pipeline</div>
+        <div class="settings-section" id="config-fields"></div>
+        <button class="btn btn-primary btn-sm" onclick="saveConfig()">Guardar cambios</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ── Lead Modal ──────────────────────────────────────── -->
+<div class="modal-backdrop" id="lead-modal">
+  <div class="modal" style="width:min(700px,95vw)">
+    <div class="modal-header">
+      <div class="modal-title" id="lead-modal-title">Lead</div>
+      <button class="modal-close" onclick="closeModal('lead-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="lead-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('lead-modal')">Cerrar</button>
+      <button class="btn btn-primary" id="lead-modal-save" onclick="saveLead()">Guardar</button>
+    </div>
+  </div>
 </div>
 
-<!-- ── Modal: Add/Edit Payment ───────────────────────────────── -->
-<div class="modal-overlay" id="modal-payment">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="modal-payment-title"><i class="fas fa-dollar-sign" style="color:#f59e0b;margin-right:8px"></i>Registrar pago</h3>
-            <button class="modal-close" data-close="modal-payment">&times;</button>
-        </div>
-        <div class="modal-body">
-            <input type="hidden" id="pay-telefono-hidden">
-            <div class="form-group">
-                <label>Seleccionar lead existente</label>
-                <select id="pay-lead-select" class="form-input">
-                    <option value="">— Seleccionar lead —</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Nombre del cliente</label>
-                <input type="text" id="pay-nombre" class="form-input" placeholder="Nombre del cliente">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Monto</label>
-                    <input type="number" id="pay-monto" class="form-input" placeholder="0" min="0">
-                </div>
-                <div class="form-group">
-                    <label>Moneda</label>
-                    <select id="pay-moneda" class="form-input">
-                        <option value="ARS">ARS $</option>
-                        <option value="USD">USD $</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Estado</label>
-                    <select id="pay-estado" class="form-input">
-                        <option value="pagado">Pagado</option>
-                        <option value="pendiente">Pendiente</option>
-                        <option value="parcial">Parcial</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Fecha</label>
-                    <input type="date" id="pay-fecha" class="form-input">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Servicio</label>
-                <input type="text" id="pay-servicio" class="form-input" placeholder="Sitio web">
-            </div>
-            <div class="form-group">
-                <label>Notas</label>
-                <textarea id="pay-notas" class="form-input" placeholder="Notas adicionales..." rows="2"></textarea>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" data-close="modal-payment">Cancelar</button>
-            <button class="btn btn-primary" id="save-payment-btn">
-                <i class="fas fa-save"></i> Guardar
-            </button>
-        </div>
+<!-- ── New Lead Modal ──────────────────────────────────── -->
+<div class="modal-backdrop" id="new-lead-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Nuevo lead</div>
+      <button class="modal-close" onclick="closeModal('new-lead-modal')">✕</button>
     </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="field"><label>Nombre *</label><input type="text" id="nl-nombre"></div>
+        <div class="field"><label>Teléfono *</label><input type="text" id="nl-telefono"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Categoría</label><input type="text" id="nl-categoria"></div>
+        <div class="field"><label>Ciudad</label><input type="text" id="nl-ciudad" value="Rosario"></div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Dirección</label><input type="text" id="nl-direccion"></div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Notas</label><textarea id="nl-notas" rows="3"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('new-lead-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="createLead()">Crear lead</button>
+    </div>
+  </div>
 </div>
+
+<!-- ── Payment Modal ──────────────────────────────────── -->
+<div class="modal-backdrop" id="payment-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Registrar pago</div>
+      <button class="modal-close" onclick="closeModal('payment-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="field"><label>Nombre</label><input type="text" id="p-nombre"></div>
+        <div class="field"><label>Teléfono</label><input type="text" id="p-telefono"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Monto</label><input type="number" id="p-monto" min="0"></div>
+        <div class="field"><label>Moneda</label>
+          <select id="p-moneda"><option value="ARS">ARS</option><option value="USD">USD</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Estado</label>
+          <select id="p-estado">
+            <option value="pendiente">Pendiente</option>
+            <option value="pagado">Pagado</option>
+            <option value="parcial">Parcial</option>
+          </select>
+        </div>
+        <div class="field"><label>Fecha</label><input type="date" id="p-fecha"></div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Servicio</label><input type="text" id="p-servicio" value="Sitio web"></div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Notas</label><textarea id="p-notas" rows="2"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('payment-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePayment()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Template Modal ──────────────────────────────────── -->
+<div class="modal-backdrop" id="template-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="template-modal-title">Template</div>
+      <button class="modal-close" onclick="closeModal('template-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row full">
+        <div class="field"><label>Nombre</label><input type="text" id="t-nombre"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Tipo</label>
+          <select id="t-tipo">
+            <option value="outreach">Outreach inicial</option>
+            <option value="link">Envío de link</option>
+            <option value="followup">Follow-up</option>
+          </select>
+        </div>
+        <div class="field"><label>Estado</label>
+          <select id="t-activo">
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Mensaje</label>
+          <textarea id="t-contenido" rows="6" style="font-family:var(--mono);font-size:12px"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('template-modal')">Cancelar</button>
+      <button class="btn btn-primary" id="t-save-btn" onclick="saveTemplate()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast container ─────────────────────────────────── -->
+<div class="toast-container" id="toast-container"></div>
 
 <script src="/static/script.js"></script>
 </body>
