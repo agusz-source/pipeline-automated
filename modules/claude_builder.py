@@ -5,6 +5,8 @@ Flow: Python creates folder → invokes claude --permission-mode bypassPermissio
 """
 
 import csv
+import hashlib
+import io
 import json
 import os
 import re
@@ -12,6 +14,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+import requests
 from colorama import Fore, init
 
 from config import config
@@ -21,216 +24,390 @@ init(autoreset=True)
 INTERESADOS_FILE = config.INTERESADOS_FILE
 DATASET_FILE = config.DATASET_FILE
 
-_DESIGN_ARCHETYPES = [
-    {
-        "name": "brutal_workshop",
-        "palette_hint": "near-white #F0ECE3, raw black #0D0D0D, construction orange #FF5500, mid-grey #888888",
-        "type_hint": "Space Grotesk 900 for headings, IBM Plex Mono for labels/metadata",
-        "structure_hint": "Brutalist grid: sections bordered by 2px black lines, oversized section numbers (01, 02…) as typographic anchors in top-left of each block, zero decorative softness",
-        "hero_hint": "Giant heading flush-left at clamp(3rem,8vw,7rem), a 2px horizontal rule below it, then address in Mono and a sharp CTA. No gradient, no rounded corners, no shadows.",
-        "layout_twist": "Each section has a large typographic counter (01 SERVICIOS, 02 PROCESO…) in the top-left in Space Grotesk 900 at 15vw opacity-10 — decorative but structural. Service cards are full-width bordered rows, not a card grid.",
-        "visual_trick": "CSS hatching texture via repeating-linear-gradient(45deg, #0D0D0D 1px, transparent 1px) at very low opacity for subtle depth. Section dividers are 2px solid black lines, nothing else.",
-        "copy_tone": "Direct, zero-fluff Argentine workshop energy. Short declarative sentences. No softening adjectives.",
-    },
-    {
-        "name": "editorial_magazine",
-        "palette_hint": "warm off-white #FAF8F3, charcoal #1C1C1A, muted gold #C9A84C, light stone #E8E2D9",
-        "type_hint": "Playfair Display italic 700 for display headings, Lato 300/400 for body — classic editorial contrast",
-        "structure_hint": "Irregular CSS grid columns (7fr 5fr), pull-quotes as visual anchors, full-bleed typographic interludes between content sections",
-        "hero_hint": "Large italic Playfair headline spanning 70% width, overlined eyebrow in uppercase tracked 0.2em, a 1px gold horizontal rule, then a short punchy subheadline in Lato 300.",
-        "layout_twist": "Alternating text-left/text-right sections using CSS grid with named areas. One section rotates a decorative background word 90deg (like 'MADERA' or 'TALLER') as a typographic watermark. An SVG ruler illustration acts as the portfolio/process divider.",
-        "visual_trick": "SVG horizontal rule with measured tick marks like a woodworking ruler — rendered inline between sections as a visual metaphor.",
-        "copy_tone": "Thoughtful, craft-forward. Talks about the work as if it matters because it does.",
-    },
-    {
-        "name": "anti_polish_raw",
-        "palette_hint": "paper white #FAFAF8, pencil grey #4A4A4A, marker black #1A1A1A, kraft brown #C4A77D, red-ink accent #D63A2F",
-        "type_hint": "Amatic SC for headings (hand-drawn feel), Cabin for body — indie craft personality",
-        "structure_hint": "Cards with slight CSS rotations via nth-child (rotate(-1.5deg), rotate(1deg), rotate(-0.5deg)), ruled-line backgrounds on testimonial sections, stamp-like section badges",
-        "hero_hint": "Title in Amatic SC at clamp(3rem,7vw,6rem), underlined with a thick 4px red-ink border-bottom, short punchy subheadline in Cabin, CTA styled like a rubber stamp (border: 2px solid, uppercase, tracked).",
-        "layout_twist": "Service cards each rotated slightly with nth-child CSS — they look pinned to a corkboard. Testimonials styled as sticky notes (slightly yellow background, rotate, box-shadow). Process steps are handwritten-style numbered circles with a dashed connecting line.",
-        "visual_trick": "CSS ::before pseudo-elements simulate washi tape in the top corners of each card — a thin colored strip rotated 45deg. No images needed.",
-        "copy_tone": "Casual, warm, human. Like a neighbour recommending their own carpenter with genuine enthusiasm.",
-    },
-    {
-        "name": "showroom_dark",
-        "palette_hint": "near-black #0A0A08, off-white #F2F0EB, warm gold #C9973A, dark mid-grey #2A2A27",
-        "type_hint": "Cormorant Garamond 300 for large display headings, Inter 400 for body — luxury contrast",
-        "structure_hint": "Dark luxury: minimal text density, very generous vertical padding (min 8rem per section), text centered on dark backgrounds, single accent color used sparingly",
-        "hero_hint": "Full-viewport-height section, centered headline in Cormorant at clamp(2.5rem,5vw,5rem) weight 300, one-line subtitle in Inter 400, gold-bordered CTA with transparent background (border: 1px solid gold, color: gold).",
-        "layout_twist": "Horizontal CSS scroll-snap showcase for services/portfolio — users swipe through cards, no JS pagination library. A counter section with huge Cormorant numbers (01, 02…) next to short stat labels. Gold 1px ::before/::after lines flanking section headings as decoration.",
-        "visual_trick": "Thin 1px gold lines as CSS pseudo-element decorators flanking h2 headings: content: ''; display: block; width: 40px; height: 1px; background: gold; — centered above or beside heading.",
-        "copy_tone": "Understated confidence. Never boastful. The work speaks; the copy just introduces it.",
-    },
-    {
-        "name": "nature_craft",
-        "palette_hint": "terracotta #C67B5C, sand beige #D4C4A8, warm clay #B5651D, soft cream #F5F0E1, olive #6B7B3C",
-        "type_hint": "Fraunces (variable, optical size) for headings, Source Sans 3 for body — organic editorial warmth",
-        "structure_hint": "Earthy and organic: sections alternate between cream and sand backgrounds, CSS grain overlay at 8% opacity on hero, border-radius used organically (blob shapes on decorative elements, not on cards)",
-        "hero_hint": "Organic layout: heading in Fraunces italic at clamp(2.5rem,5vw,4.5rem) in warm clay on cream, a small olive-colored leaf SVG ornament (draw it inline), then address and CTA. Background is cream, not a photo.",
-        "layout_twist": "Process steps shown as a winding path: each step has a left or right border (alternating), connected by a vertical dashed line — like a hand-drawn map route, not numbered boxes in a grid. Testimonials in earthy-colored asymmetric quote blocks.",
-        "visual_trick": "An inline SVG wood-grain decoration (a few parallel wavy lines) used as section divider. CSS grain overlay on the hero: background-image: url(\"data:image/svg+xml,...\") for noise texture.",
-        "copy_tone": "Warm, process-proud, sustainable in spirit. Talks about materials and craft with genuine care — not performative.",
-    },
-    {
-        "name": "split_grid_industrial",
-        "palette_hint": "concrete #B0A99F, warm black #1A1714, amber #E8A020, raw white #F7F5F2",
-        "type_hint": "Barlow Condensed 700-900 for headings, Barlow 400 for body — industrial utility type",
-        "structure_hint": "Asymmetric CSS grid throughout: hero is 60/40 split, services in a staggered pattern (full-width → two columns → full-width), amber accent bars as section separators",
-        "hero_hint": "Split screen: left 60% has headline in Barlow Condensed at clamp(3rem,7vw,6rem) weight 800, address and CTA below. Right 40% has a CSS geometric composition — interlocking rectangles in concrete/amber referencing furniture joints or wood joinery. Pure CSS, no images.",
-        "layout_twist": "Services: first card full-width, next two side-by-side, last card full-width again — staggered rhythm breaks the boring grid. CSS clip-path diagonal cuts (polygon(0 0, 100% 0, 100% 88%, 0 100%)) on section transitions instead of straight horizontal borders.",
-        "visual_trick": "Amber accent bars — a 4px solid amber horizontal line — used as visual separator and section introduction. CSS clip-path diagonal transitions between sections.",
-        "copy_tone": "Workshop-honest. Talks about craft like a builder explaining their process to a client — practical, confident, no marketing veneer.",
-    },
-    {
-        "name": "boutique_warm",
-        "palette_hint": "cream #F8F3EE, sand #E8DDD0, terracotta accent #C0705A, deep forest green #2D4A3E",
-        "type_hint": "DM Serif Display italic for headings, DM Sans 400/500 for body — boutique warmth",
-        "structure_hint": "Warm residential feel: curved section dividers (a div with border-radius 50% acting as a wave), overlapping cards via negative margins on desktop, green accent used only on CTAs and highlights",
-        "hero_hint": "Full narrative: eyebrow in DM Sans small-caps, large DM Serif italic headline across 2-3 lines, a short personal-voice subtitle, then two CTAs side by side — WhatsApp (terracotta fill) and 'Ver nuestros trabajos' (outlined).",
-        "layout_twist": "Testimonials use an offset layout: odd items float-left with left padding, even items float-right with right padding, and they overlap slightly — not a grid, not a carousel. A section with a large decorative DM Serif Display italic quote in the background at low opacity.",
-        "visual_trick": "Section background alternates cream/sand with a curved divider div between them (height: 80px, border-radius: 0 0 50% 50% / 0 0 100% 100%, background from previous section color). Creates a soft wavy visual rhythm.",
-        "copy_tone": "Personal, boutique warmth. Talks to you like the owner would in the showroom — knowledgeable, relaxed, proud of their work.",
-    },
-    {
-        "name": "retro_print",
-        "palette_hint": "aged paper #F2ECD8, deep ink #1A1208, rust red #B33A1E, olive stamp #4A5C2B",
-        "type_hint": "Libre Baskerville for headings, Space Mono for labels/metadata/prices — letterpress printing echo",
-        "structure_hint": "Letterpress grid: content in constrained columns (max 720px centered), large typographic ornaments (asterisms, section dividers from Unicode), stamp-like badges, ruled lines as dividers",
-        "hero_hint": "Large Libre Baskerville headline with a CSS double-border box around it (outline + border, gap via padding), subtitle in Space Mono uppercase tracked 0.1em, aged-paper background (#F2ECD8), rust-red accent on key words.",
-        "layout_twist": "Service items styled as receipt/invoice line items — Space Mono, dotted border-bottom, a 'price on request' label in olive. One large decorative typographic seal (CSS-drawn circle with text on path using SVG textPath) in the trust section. Process steps look like a numbered list from a 1970s instruction manual.",
-        "visual_trick": "CSS noise grain on hero: a pseudo-element with repeating-conic-gradient or SVG feTurbulence filter for that aged-print texture. Rust-red rubber-stamp style badges (border: 2px solid rust, rotate(-5deg), uppercase) on section headings.",
-        "copy_tone": "Honest, slightly humorous, old-school craft pride. Aware of their own history. No Instagram-speak.",
-    },
+_NICHE_VIBE: list[tuple[list[str], str]] = [
+    (
+        ["mueble", "carpinter", "amoblamiento", "placard", "cocina", "madera", "tapiz", "herrer"],
+        "Industrial-craft: zinc-950 (#1a1714) base, off-white (#f5f3ef) text, warm amber (#c97820) as sole accent. "
+        "Barlow Condensed 800 for headings, Barlow 400 body. Hero: 60/40 split — headline left, CSS geometric "
+        "composition of interlocking rectangles right (pure CSS, no img). Service rows full-width bordered, not card grid.",
+    ),
+    (
+        ["estética", "estetica", "belleza", "nail", "manicur", "pedicur", "lash", "spa", "bronceado", "masaje"],
+        "Quiet editorial luxury: warm off-white (#f9f6f2) base, single rose accent (#c0788a). "
+        "DM Serif Display italic for headings, DM Sans 400 body. Hero: asymmetric — headline large italic left, "
+        "address + CTA right, no gradient. Sections alternate off-white / pale sand, curved divider between them.",
+    ),
+    (
+        ["peluquer", "keratina", "coloracion", "tintura"],
+        "Bold typographic confidence: near-black (#1a1714) base, off-white text, electric teal (#1dada8) accent. "
+        "Bebas Neue or Barlow Condensed 900 for headings. Hero: full-bleed dark, headline at clamp(4rem,10vw,8rem) "
+        "flush left, zero decoration. Testimonials in high-contrast inverted cards.",
+    ),
+    (
+        ["gimnasio", "gym", "fitness", "crossfit", "funcional", "entrenamiento", "musculacion", "boxeo"],
+        "High-energy industrial: zinc-950 (#111110) base, off-white text, electric lime (#c8e120) as sole accent. "
+        "Barlow Condensed 900 for headings at oversized scale, Barlow 400 body. Hero: full-bleed dark with "
+        "headline crushing full width, CTA in lime-on-black. Service rows as stark full-width blocks, "
+        "no cards. Testimonials inverted with bold first-name callout.",
+    ),
+    (
+        ["pilates", "yoga"],
+        "Calm editorial: warm linen (#f5f0e8) base, charcoal (#2a2826) text, sage green (#7a9e7e) accent. "
+        "Cormorant Garamond 300 italic for display headings, DM Sans 400 body. Hero: asymmetric — "
+        "large italic headline left, minimal address + CTA right, no gradient. Generous whitespace, "
+        "sections alternate linen/warm white with thin sage dividers.",
+    ),
+    (
+        ["cerrajer", "llave", "duplicado", "cerradura"],
+        "Utility confidence: concrete (#b0a99f) and zinc-950, amber (#e8a020) accent on CTAs only. "
+        "Barlow Condensed 700 headings, Barlow 400 body. Hero: split — left headline + address, right CSS "
+        "geometric lock/key shape in amber/concrete. No decoration beyond function.",
+    ),
+]
+
+_DEFAULT_VIBE = (
+    "Editorial craft: off-white (#f5f3ef) base, zinc-950 text, one strong accent derived from the business "
+    "personality. Outfit 700 or Cabinet Grotesk 700 for headings, system-sans body. Varied section rhythm, "
+    "no two consecutive sections with the same layout family."
+)
+
+_NICHE_COLORS: list[tuple[list[str], list[str]]] = [
+    (
+        ["estética", "estetica", "belleza", "nail", "manicur", "pedicur", "lash", "spa", "bronceado", "masaje"],
+        ["#c0788a", "#f9f6f2", "#8b4a5c", "#1a1714"],
+        # rose accent, warm cream base, deep rose contrast, near-black text
+    ),
+    (
+        ["peluquer", "keratina", "coloracion", "tintura"],
+        ["#1dada8", "#1a1714", "#e8f4f3", "#c8523a"],
+        # electric teal, near-black, light teal tint, warm red contrast
+    ),
+    (
+        ["gimnasio", "gym", "fitness", "crossfit", "funcional", "entrenamiento", "musculacion", "boxeo"],
+        ["#c8e120", "#111110", "#f0f5d0", "#e8340a"],
+        # electric lime, near-black, lime tint, aggressive red contrast
+    ),
+    (
+        ["pilates", "yoga"],
+        ["#7a9e7e", "#f5f0e8", "#3d5c40", "#c4a882"],
+        # sage green, warm linen, deep forest, sand contrast
+    ),
+    (
+        ["mueble", "carpinter", "amoblamiento", "placard", "cocina", "madera", "tapiz", "herrer"],
+        ["#c97820", "#1a1714", "#f5f3ef", "#6b4c1e"],
+        # warm amber, near-black, off-white, deep wood contrast
+    ),
+    (
+        ["cerrajer", "llave", "duplicado", "cerradura"],
+        ["#e8a020", "#1a1714", "#b0a99f", "#2a2420"],
+        # amber, near-black, concrete, dark contrast
+    ),
+    (
+        ["restaurant", "restau", "comida", "pizza", "sushi", "burger", "cafe", "panaderia", "heladeria"],
+        ["#d4500a", "#1a1714", "#fdf6ec", "#8b2a0a"],
+        # warm orange-red, near-black, warm cream, deep red contrast
+    ),
+    (
+        ["medic", "odontolog", "dentist", "clinic", "salud", "psicolog", "nutricion", "farmac"],
+        ["#2a7fbd", "#f4f8fc", "#1a3a5c", "#4ab3c8"],
+        # trust blue, clean white-blue base, deep navy, cyan contrast
+    ),
+    (
+        ["abogad", "estudio juridico", "contad", "inmobiliari"],
+        ["#1a3a5c", "#f5f3ef", "#c4a050", "#2d5a8c"],
+        # deep navy, off-white, gold accent, mid blue contrast
+    ),
+    (
+        ["electrodom", "tecnic", "reparacion", "plomero", "electric", "pintor", "albañil", "construc"],
+        ["#e85010", "#1a1714", "#f5f3ef", "#a83808"],
+        # strong orange-red, near-black, off-white, deep red contrast
+    ),
+]
+
+_DEFAULT_COLORS = ["#2a5a8c", "#f5f3ef", "#1a1714", "#c4a050"]
+# versatile navy + off-white + near-black + gold — works for any unmatched category
+
+
+def _category_colors(lead: dict) -> list[str]:
+    text = " ".join([
+        (lead.get("categoryName") or lead.get("categoria") or ""),
+        (lead.get("nombre") or lead.get("title") or ""),
+    ]).lower()
+    for keywords, colors in _NICHE_COLORS:
+        if any(k in text for k in keywords):
+            return colors
+    return _DEFAULT_COLORS
+
+
+_LAYOUT_PERSONALITIES = [
+    """\
+LAYOUT: Editorial Asymmetry
+- Hero: 65/35 horizontal split — massive italic headline left, stacked address + CTA right. Dark background.
+- Servicios: horizontal overflow row of tall narrow cards (overflow-x: auto, snap-type: x mandatory)
+- Proceso: diagonal staircase — each step indented more than the last, large numeral, small text
+- Portfolio: CSS masonry using columns property (3 col desktop), varied heights
+- Testimonios: single large pull-quote per row, full width, 4rem italic, name in small caps below
+- Contacto: two columns — left: large phone number at 4rem; right: address + WA CTA""",
+
+    """\
+LAYOUT: Bold Bento Grid
+- Hero: CSS grid 12-col — headline spans cols 1-8, accent color block fills cols 9-12, full viewport height
+- Servicios: 2×2 grid desktop, each cell dark background with single service word at 3rem + description on hover
+- Proceso: horizontal timeline — circles connected by a line, text alternates above/below
+- Portfolio: overlapping cards with explicit z-index layering, slight rotation (2-4deg) on alternates
+- Testimonios: 3-col card grid, each card has huge opening-quote mark (7rem) as decoration
+- Contacto: centered narrow column (max 520px), minimal, large WA button full width""",
+
+    """\
+LAYOUT: Magazine Flow
+- Hero: full-bleed solid color (use darkest palette color), headline at clamp(4rem,10vw,9rem), subtext in uppercase tracking-wide
+- Servicios: alternating full-width rows — odd rows: text left 40% / visual block right 60%; even rows: reversed
+- Proceso: vertical steps with left border accent line, step title at 2rem, description indented
+- Portfolio: 3 unequal columns (45% / 30% / 25%), color blocks in brand palette, no border-radius
+- Testimonios: horizontal scrolling strip — each testimonial 320px wide, dark bg, white text
+- Contacto: split page — left half dark with white contact info; right half light with WA CTA""",
+
+    """\
+LAYOUT: High Contrast Blocks
+- Hero: alternating stripe background (2 horizontal bands), headline breaks across both bands
+- Servicios: full-width alternating sections per service — each one different bg color from palette
+- Proceso: large bold numbers (10rem, low opacity) behind step text, steps full bleed
+- Portfolio: rectangular color blocks in a CSS grid collage — no text, pure visual
+- Testimonios: blockquote format, 3rem italic, left border 4px accent color, name flush right
+- Contacto: dark section, address in monospace-style font, WA button accent color full width""",
+
+    """\
+LAYOUT: Typographic Brutalism
+- Hero: oversized headline clamp(6rem,16vw,13rem) flush left, zero decoration, one-word accent color highlight
+- Servicios: numbered list — 01, 02, 03... at 5rem low opacity behind service names, no cards
+- Proceso: inline paragraph format — steps written as running text with bold action words
+- Portfolio: CSS grid of solid color squares/rectangles, sizes vary (1×1, 2×1, 1×2), brand palette only
+- Testimonios: single testimonial at a time, huge quotation mark background, italic serif at 2.5rem
+- Contacto: raw layout — phone at 4rem, address small, WA link styled as underline-only text""",
 ]
 
 
-def _pick_archetype(lead: dict, idx: int = 0) -> dict:
-    """Pick a design archetype based on business name hash for consistency."""
-    name = lead.get("nombre", lead.get("title", ""))
-    h = sum(ord(c) for c in name) % len(_DESIGN_ARCHETYPES)
-    return _DESIGN_ARCHETYPES[h]
+def _layout_personality(lead: dict) -> str:
+    nombre = (lead.get("nombre") or lead.get("title") or "x")
+    idx = int(hashlib.md5(nombre.encode()).hexdigest(), 16) % len(_LAYOUT_PERSONALITIES)
+    return _LAYOUT_PERSONALITIES[idx]
 
 
-def _build_agent_prompt(lead: dict, archetype: dict) -> str:
-    """Build prompt for Claude Code agent — instructs it to write website files to disk."""
-    nombre = lead.get("nombre") or lead.get("title", "Amoblamientos")
+def _design_vibe(lead: dict) -> str:
+    text = " ".join([
+        (lead.get("categoryName") or lead.get("categoria") or ""),
+        (lead.get("nombre") or lead.get("title") or ""),
+    ]).lower()
+    for keywords, vibe in _NICHE_VIBE:
+        if any(k in text for k in keywords):
+            return vibe
+    return _DEFAULT_VIBE
+
+
+def _is_business_logo(image_path: Path) -> bool:
+    """Uses Claude Haiku CLI to check if the image is a business logo (not a personal photo)."""
+    env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
+    try:
+        r = subprocess.run(
+            [
+                "claude",
+                "--model", "claude-haiku-4-5-20251001",
+                "--permission-mode", "bypassPermissions",
+                "--print",
+                f"Read the image file at {image_path}. Is this a business logo or brand image (not a face or personal photo)? Reply only YES or NO.",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            stdin=subprocess.DEVNULL,
+            env=env,
+        )
+        return r.stdout.strip().upper().startswith("Y")
+    except Exception:
+        return False
+
+
+def _fetch_brand_assets(phone: str, project_path: Path) -> dict:
+    """
+    Fetches WhatsApp profile picture, verifies it's a business logo via Claude Haiku,
+    and extracts dominant colors. Returns dict with logo_path (str|None) and colors (list of hex).
+    """
+    try:
+        from colorthief import ColorThief
+    except ImportError:
+        return {"logo_path": None, "colors": []}
+
+    bridge_url = config.WA_BRIDGE_URL
+    digits = re.sub(r"[^\d]", "", phone)
+
+    try:
+        r = requests.get(
+            f"{bridge_url}/profile-pic",
+            params={"phone": digits},
+            timeout=8,
+        )
+        if r.status_code != 200:
+            return {"logo_path": None, "colors": []}
+        pic_url = r.json().get("url")
+        if not pic_url:
+            return {"logo_path": None, "colors": []}
+    except Exception:
+        return {"logo_path": None, "colors": []}
+
+    try:
+        img_data = requests.get(pic_url, timeout=10).content
+        tmp_path = project_path / "logo.jpg"
+        tmp_path.write_bytes(img_data)
+
+        if not _is_business_logo(tmp_path):
+            tmp_path.unlink(missing_ok=True)
+            return {"logo_path": None, "colors": []}
+
+        ct = ColorThief(io.BytesIO(img_data))
+        palette = ct.get_palette(color_count=3, quality=1)
+        colors = [f"#{rv:02x}{gv:02x}{bv:02x}" for rv, gv, bv in palette]
+        return {"logo_path": str(tmp_path), "colors": colors}
+    except Exception:
+        return {"logo_path": None, "colors": []}
+
+
+def _build_agent_prompt(lead: dict, brand: dict | None = None) -> str:
+    nombre = lead.get("nombre") or lead.get("title", "Negocio")
     telefono = lead.get("telefono") or lead.get("phone", "")
     direccion = lead.get("direccion") or lead.get("street", "Rosario")
     ciudad = lead.get("ciudad") or lead.get("city", "Rosario")
-    categoria = lead.get("categoryName") or lead.get("categoria", "muebles a medida")
-    categoria_title = categoria.title()
+    categoria = lead.get("categoryName") or lead.get("categoria", "servicio")
     resenas = lead.get("resenas") or lead.get("reviewsCount", 0)
     puntaje = lead.get("puntaje") or lead.get("totalScore", "")
 
     phone_digits = re.sub(r"[^\d]", "", telefono)
     if not phone_digits.startswith("54"):
         phone_digits = "54" + phone_digits
-    wa_link = f"https://wa.me/{phone_digits}?text=Hola%2C%20quer%C3%ADa%20consultar%20sobre%20sus%20muebles"
+    wa_link = f"https://wa.me/{phone_digits}?text=Hola%2C%20quer%C3%ADa%20hacer%20una%20consulta"
 
-    reviews_note = ""
+    reviews_line = ""
     if resenas and int(resenas) > 0:
-        reviews_note = (
-            f"  Google rating: {puntaje} stars ({resenas} reviews)"
-            if puntaje
-            else f"  {resenas} Google reviews"
+        reviews_line = f"  Reviews: {puntaje} estrellas ({resenas} resenas Google)\n" if puntaje else f"  Reviews: {resenas} en Google\n"
+
+    vibe   = _design_vibe(lead)
+    layout = _layout_personality(lead)
+    brand  = brand or {}
+
+    if brand.get("logo_path"):
+        logo_line = (
+            f"  Logo file: ./logo.jpg — place as <img> in the NAV. "
+            f"If the logo has a white/light background, apply CSS `mix-blend-mode: multiply` so it blends cleanly.\n"
+        )
+    else:
+        logo_line = "  No logo available — use business name as text in NAV.\n"
+
+    if brand.get("colors"):
+        hex_list = ", ".join(brand["colors"])
+        color_instruction = (
+            f"  Logo colors detected: {hex_list}.\n"
+            f"  Build the palette from these but don't use them alone — add a near-black and a near-white "
+            f"for legibility. Contrast can be subtle or obvious; let it breathe naturally.\n"
+        )
+    else:
+        niche_colors = _category_colors(lead)
+        hex_list = ", ".join(niche_colors)
+        color_instruction = (
+            f"  Curated palette for this business type: {hex_list}.\n"
+            f"  First = primary accent, second = base/bg, third = headings, fourth = CTA contrast. "
+            f"Mix light and dark tones; contrast can be subtle or obvious.\n"
         )
 
-    return f"""You are a web development agent. Your task: build a production website for a real Argentine furniture workshop. Not a template. Not a UI kit screenshot. A real site the owner would be proud to show their clients.
+    return f"""You are a web development agent. Write a real production website for {nombre}, a {categoria} in {ciudad}, Argentina.
 
-TASK — use your Write tool to create exactly three files in the current directory:
-  1. styles.css  — complete stylesheet, CSS custom properties, no Tailwind
-  2. script.js   — minimal vanilla JS only (mobile nav toggle, smooth scroll)
-  3. index.html  — complete HTML referencing ./styles.css and ./script.js
+Use your Write tool to create exactly three files in the current directory:
+  styles.css  — complete stylesheet, CSS custom properties, no Tailwind, no Bootstrap
+  script.js   — mobile nav toggle + smooth scroll + IntersectionObserver scroll-reveal
+  index.html  — full HTML referencing ./styles.css and ./script.js
 
-Write directly to disk. Do not print code in the terminal. Do not explain what you are doing.
+Do not print code to the terminal. Do not explain. Just write the files.
 
-───────────────────────────────────────────────
 BUSINESS
   Name:     {nombre}
-  Category: {categoria}
+  Type:     {categoria}
   Address:  {direccion}, {ciudad}, Argentina
   Phone:    {telefono}
   WA link:  {wa_link}
-{reviews_note}
-───────────────────────────────────────────────
-DESIGN ARCHETYPE — {archetype["name"].upper().replace("_", " ")}
+{reviews_line}
+BRAND
+{logo_line}{color_instruction}
+LAYOUT PERSONALITY — follow this structure literally, section by section:
+{layout}
 
-  Palette:      {archetype["palette_hint"]}
-  Typography:   {archetype["type_hint"]}
-  Structure:    {archetype["structure_hint"]}
-  Hero:         {archetype["hero_hint"]}
-  Layout twist: {archetype["layout_twist"]}
-  Visual trick: {archetype["visual_trick"]}
-  Copy tone:    {archetype["copy_tone"]}
+DESIGN DIRECTION (typography + mood)
+{vibe}
+Fonts: pick one from Geist, Outfit, Cabinet Grotesk, Satoshi, Barlow Condensed, DM Serif Display, Bebas Neue. No Inter. No Roboto. Import via @import in styles.css (Google Fonts CDN).
 
-Implement every line of the archetype literally. These are not mood-board suggestions.
-───────────────────────────────────────────────
-THE SLOP TEST — run this before writing each section:
+STOCK IMAGES (royalty-free — Unsplash, no copyright, no watermark):
+Place 3-4 <img> tags using real Unsplash photo IDs you know from training that match "{categoria}".
+URL format: https://images.unsplash.com/photo-PHOTO_ID?w=1200&q=80&auto=format&fit=crop
+- Hero: one large image (1200x800 or wider) that sets the mood of the business
+- Portfolio/gallery section: 3 real photos replacing any "CSS color block" instruction
+- One ambient/lifestyle photo inside Servicios or Proceso
+All images: descriptive alt text in Spanish, loading="lazy" on everything below the fold,
+width + height attributes set (prevents layout shift). Use object-fit: cover on containers.
 
-  1. "Could this section appear unchanged on a dental clinic?" → Yes = rewrite it around furniture.
-  2. "Are 3+ consecutive sections just [icon] [heading] [paragraph]?" → Yes = break the pattern.
-  3. "Is my hero a headline + subtitle + button on a gradient or stock-photo placeholder?" → Yes = follow archetype hero instead.
-  4. "Do I use calidad, compromiso, excelencia, pasión, or innovación anywhere?" → Delete every instance.
-  5. "Do my testimonials sound like a brand wrote them?" → Replace with specific Argentine-register moments.
-───────────────────────────────────────────────
-REQUIRED SECTIONS — 8 minimum, in this order:
+TASTE RULES — apply every one:
+- Hero headline: font-size clamp(3rem, 7vw, 6.5rem), flush-left per layout, max 2 lines, max 8 words.
+- Hero container: min-height: 100dvh. Never height: 100vh (breaks mobile Safari).
+- Hero top padding max 5rem. The CTA must be visible without scrolling at 1280px.
+- Shadows: always tint to the background hue. On dark bg: 0 4px 24px rgba(0,0,0,.35). On light bg: 0 4px 24px rgba(26,23,20,.10). Never pure black box-shadow.
+- Buttons — tactile press: :active {{ transform: scale(0.98) translateY(1px); transition: transform 80ms; }}
+- Pick ONE corner-radius rule and use it everywhere: either all-sharp (border-radius: 0), all-soft (12px), or all-pill (999px for interactive only). Never mix systems.
+- One accent color for the whole page. No section uses a different accent.
+- No em-dash (—) anywhere in copy. Use commas, periods, or colons instead.
+- Eyebrow micro-labels (small uppercase tracking): max 1 per 3 sections. Hero counts as 1. No section-number eyebrows.
+- Scroll-reveal in script.js: IntersectionObserver with threshold 0.15; add class .visible when element enters view. In styles.css: .reveal {{ opacity: 0; transform: translateY(20px); transition: opacity .55s ease, transform .55s ease; }} .reveal.visible {{ opacity: 1; transform: none; }} @media (prefers-reduced-motion: reduce) {{ .reveal, .reveal.visible {{ opacity: 1; transform: none; transition: none; }} }}
+- Apply .reveal to section headings, service cards, process steps, testimonials.
 
-  NAV         Logo ({nombre}), phone number visible on desktop, WhatsApp CTA button
-  HERO        Follow archetype hero instructions exactly — do not invent a different layout
-  SERVICIOS   4 services specific to "{categoria}" — name each with a real description, not just "Diseño a medida"
-  PROCESO     3-5 steps with furniture-specific language (measurement visit → material selection → workshop build → install)
-  PORTFOLIO   CSS-only visual showcase — use geometric shapes, color blocks, or CSS art; no <img> to external URLs
-  TESTIMONIOS 3 testimonials — real Argentine voices, specific problems, specific solutions
-                BAD:  "Muy buena atención, los recomiendo ampliamente."
-                GOOD: "Tenia una cocina en L con una columna de gas en el medio y tres presupuestistas me dijeron que era imposible. Me lo resolvieron en la primera visita y quedó perfecto."
-  TRUST       3 differentiators specific to this business — not generic promises applicable to any company
-  CONTACTO    Address, phone, WhatsApp CTA prominent, neighborhood reference if useful
-  FOOTER      Year, city, business name — minimal
-───────────────────────────────────────────────
-COPY RULES:
-  - All text in Argentine Spanish, informal vos register (not forced, just natural)
-  - Zero invented statistics — no "15 años de experiencia", "500 clientes" unless data above provides them
-  - No em-dashes, no ellipses, no excessive exclamation marks
-  - No emoji anywhere in the HTML
-  - Testimonial names: use common Argentine first names (Mariana, Diego, Florencia, Sebastián)
-───────────────────────────────────────────────
-TYPOGRAPHY:
-  - @import the archetype fonts from Google Fonts at top of styles.css
-  - --ff-display and --ff-body as CSS custom properties
-  - h1 uses display font; h2/h3 can mix; labels/metadata use body or mono
-  - Line-height: 1.1-1.25 headings, 1.6-1.75 body
-  - Body text max-width: 65ch per line
-───────────────────────────────────────────────
-CSS & LAYOUT:
-  - CSS custom properties for ALL colors, fonts, spacing scale
-  - Mobile-first; breakpoints at 768px and 1100px minimum
-  - Implement archetype layout_twist and visual_trick literally — these are CSS techniques, not vibes
-  - Varied vertical rhythm: sections are NOT all the same padding
-  - z-index scale: 10 content, 20 sticky nav, 50 floating button, 999 overlay
-───────────────────────────────────────────────
-ACCESSIBILITY & INTERACTION:
-  - cursor: pointer on ALL clickable/hoverable elements — cards, buttons, links, nav items
-  - Hover transitions: 150-250ms ease on color and opacity (not width or height)
-  - Visible focus rings: outline: 2px solid <accent>; outline-offset: 2px on :focus-visible
-  - All SVGs and meaningful visuals: aria-label or role="img" + aria-label
-  - @media (prefers-reduced-motion: reduce) block that disables all transition and animation
-───────────────────────────────────────────────
-WHATSAPP:
-  - Floating button: position fixed, bottom: 1.5rem, right: 1.5rem, 56×56px, z-index 50, background #25D366
-  - SVG WhatsApp icon inside (draw the path inline, no external source)
-  - aria-label="Escribinos por WhatsApp"
-  - Minimum 2 inline WhatsApp CTAs within body sections
-  - Exact link everywhere: {wa_link}
-───────────────────────────────────────────────
-TECHNICAL CONSTRAINTS:
-  - No inline <style> or <script> blocks in index.html
-  - No external JS libraries (no jQuery, no GSAP, no Alpine)
-  - No <img> tags pointing to http/https external URLs
+HARD BLOCKLIST:
+- No status dots, section-number counters (01, 02...)
+- No purple/blue mesh gradients or glassmorphism
+- No 3 consecutive sections with the same layout family
+- No div-based fake product screenshots
+- No "calidad", "compromiso", "excelencia", "pasion", "innovacion" in copy
+- No 3-equal-column card grids
+- No generic testimonial names ("Cliente satisfecho") — use real Argentine names
+- No placeholder.com or via.placeholder.com images
+- No invented stats or fake-precise numbers
+
+REQUIRED SECTIONS (8 minimum, in the order from LAYOUT PERSONALITY):
+  NAV        — logo or business name, phone on desktop, WhatsApp CTA. Max height 72px.
+  HERO       — follow layout personality exactly. Real Unsplash image. min-height: 100dvh.
+  SERVICIOS  — 4 real services specific to "{categoria}"
+  PROCESO    — 3-5 steps in niche-specific language, one photo alongside
+  PORTFOLIO  — 3 real Unsplash photos (override any "CSS color blocks" instruction here)
+  TESTIMONIOS — 3 testimonials, Argentine register, real names, max 3 lines each
+  CONTACTO   — address, phone, prominent WhatsApp CTA, one ambient Unsplash bg image
+  FOOTER     — year, city, business name; minimal
+
+COPY: Argentine Spanish, informal vos. No emojis in HTML. No em-dashes. Max 8-word headlines, max 25-word subtext. No filler verbs (elevar, revolucionar, innovar).
+
+CSS:
+  - All colors/fonts/spacing as CSS custom properties in :root
+  - Mobile-first, breakpoints 768px and 1100px
+  - cursor: pointer on all interactive elements
+  - Hover transitions: 150-250ms ease on color/opacity only (not transform)
+  - :active on buttons: transform: scale(0.98) translateY(1px)
+  - :focus-visible rings: 2px solid var(--color-accent), offset 2px
+  - @media (prefers-reduced-motion: reduce): disable all transitions and reveal animations
+  - No inline <style> or <script> in index.html
+
+HTML:
+  - First tag inside <head>: <meta charset="UTF-8"> — mandatory, español needs it
   - <html lang="es">
-  - <title>{nombre} | {categoria_title} en {ciudad}</title>
-  - <meta name="description" content="..."> with real local SEO value (mention city, category, address)
-  - <meta name="viewport" content="width=device-width, initial-scale=1">
+  - Proper <title> and <meta name="description"> with city + category
+  - All Spanish text: proper characters ñ, á, é, í, ó, ú, ü, ¿, ¡
+
+WHATSAPP:
+  - Floating button: fixed bottom-right, 56x56px, z-index 50, background #25D366
+  - SVG icon inline (no external src), aria-label="Escribinos por WhatsApp"
+  - At least 2 inline CTAs in body sections + the floating button
+  - Link everywhere: {wa_link}
 
 Write styles.css first, then script.js, then index.html.
 """
@@ -242,15 +419,20 @@ def _run_claude_agent(project_path: Path, prompt: str, timeout: int = 1200) -> b
     Returns True if index.html exists after the run.
     """
     env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
+    log_file = project_path / "claude.log"
 
     print(f"{Fore.CYAN}   Ejecutando Claude Code en: {project_path.name}/")
     try:
-        subprocess.run(
-            ["claude", "--permission-mode", "bypassPermissions", prompt],
-            cwd=str(project_path),
-            env=env,
-            timeout=timeout,
-        )
+        with open(log_file, "w") as log:
+            subprocess.run(
+                ["claude", "--permission-mode", "bypassPermissions", prompt],
+                cwd=str(project_path),
+                env=env,
+                timeout=timeout,
+                stdin=subprocess.DEVNULL,
+                stdout=log,
+                stderr=log,
+            )
     except subprocess.TimeoutExpired:
         print(f"{Fore.YELLOW}   Timeout despues de {timeout}s")
     except FileNotFoundError:
@@ -442,13 +624,17 @@ class ClaudeBuilder:
         Invokes Claude Code as agent inside project_path; falls back to static HTML on failure.
         Returns True on success.
         """
-        nombre = lead.get("nombre") or lead.get("title", "Amoblamientos")
+        nombre = lead.get("nombre") or lead.get("title", "Negocio")
+        telefono = lead.get("telefono") or lead.get("phone", "")
         print(f"{Fore.MAGENTA}Generando web para: {nombre}")
 
-        archetype = _pick_archetype(lead)
-        print(f"   Arquetipo: {archetype['name']}")
+        brand = _fetch_brand_assets(telefono, project_path)
+        if brand.get("logo_path"):
+            print(f"{Fore.CYAN}   Logo extraído de WhatsApp")
+        if brand.get("colors"):
+            print(f"{Fore.CYAN}   Colores de marca: {', '.join(brand['colors'])}")
 
-        prompt = _build_agent_prompt(lead, archetype)
+        prompt = _build_agent_prompt(lead, brand)
 
         if _run_claude_agent(project_path, prompt):
             print(f"{Fore.GREEN}   Generada en {project_path}")

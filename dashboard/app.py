@@ -5,8 +5,13 @@ Flask-SocketIO backend with SQLite via SQLAlchemy.
 """
 
 import json
+import logging
 import sys
+import threading
 import traceback
+
+# Suppress harmless "Bad file descriptor" noise from eventlet WSGI on socket close
+logging.getLogger("eventlet.wsgi.server").setLevel(logging.CRITICAL)
 import uuid
 from calendar import monthrange
 from collections import defaultdict
@@ -23,6 +28,7 @@ sys.path.insert(0, str(ROOT))
 # ── App setup ─────────────────────────────────────────────────
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.config["SECRET_KEY"] = "binario-2024-secret"
 app.config["JSON_SORT_KEYS"] = False
 
@@ -32,6 +38,8 @@ socketio = SocketIO(
     cors_allowed_origins="*",
     logger=False,
     engineio_logger=False,
+    ping_timeout=60,
+    ping_interval=25,
 )
 
 # ── Database & workers ────────────────────────────────────────
@@ -44,7 +52,8 @@ from database import (
 from workers import (
     job_manager,
     stage_discover, stage_send, stage_generate_webs,
-    stage_deploy, stage_send_links, stage_scrape,
+    stage_deploy, stage_send_links, stage_scrape, stage_followup,
+    stage_social_post, FOLLOWUP_MESSAGES,
 )
 
 job_manager.init_socketio(socketio)
@@ -182,6 +191,154 @@ def index():
 
 
 # ── Dashboard API ─────────────────────────────────────────────
+
+@app.route("/api/dashboard/summary")
+def api_dashboard_summary():
+    session = Session()
+    try:
+        leads  = session.query(Lead).all()
+        pagos  = session.query(Finanza).all()
+        today  = date.today()
+        now    = datetime.utcnow()
+
+        stats = _stats(leads)
+
+        # MRR — paid/partial this month, separated by currency
+        def _in_month(p, yr, mo, moneda):
+            return (p.estado in ("pagado", "parcial") and p.monto and p.fecha
+                    and p.fecha.year == yr and p.fecha.month == mo and p.moneda == moneda)
+        lm = (today.replace(day=1) - timedelta(days=1))
+        mrr_ars      = sum(p.monto for p in pagos if _in_month(p, today.year, today.month, "ARS"))
+        mrr_usd      = sum(p.monto for p in pagos if _in_month(p, today.year, today.month, "USD"))
+        mrr_prev_ars = sum(p.monto for p in pagos if _in_month(p, lm.year, lm.month, "ARS"))
+        mrr_prev_usd = sum(p.monto for p in pagos if _in_month(p, lm.year, lm.month, "USD"))
+        mrr      = mrr_ars
+        mrr_prev = mrr_prev_ars
+
+        # Clients
+        clients = [l for l in leads if l.fecha_entrega]
+        new_this_month = [l for l in clients if l.fecha_entrega and l.fecha_entrega.year == today.year and l.fecha_entrega.month == today.month]
+
+        # Follow-ups: sent, no response, older than 3 days
+        cutoff = now - timedelta(days=3)
+        fu_leads = [l for l in leads if l.enviado and not l.estado_respuesta and l.fecha_envio and l.fecha_envio < cutoff]
+
+        # Renewals
+        all_renewals = _renewals(clients)
+        ren_7d    = all_renewals["7d"]
+        ren_overdue = [r for w in all_renewals.values() for r in w if r["vencido"]]
+
+        # Tasks (generated from live data)
+        tasks = []
+        waiting = [l for l in leads if l.stage == "waiting"]
+        for l in waiting[:3]:
+            tasks.append({"type": "waiting", "title": f"Responder a {l.nombre}", "sub": "Respondio tu mensaje — requiere atencion", "priority": "high", "lead_id": l.id})
+        for r in ren_7d[:2]:
+            label = "Vencida" if r["vencido"] else f"Vence en {r['dias']}d"
+            tasks.append({"type": "renewal", "title": f"Renovar {r['tipo']} — {r['nombre']}", "sub": label, "priority": "high" if r["vencido"] or r["dias"] <= 2 else "medium"})
+        for l in fu_leads[:3]:
+            days_ago = int((now - l.fecha_envio).total_seconds() / 86400) if l.fecha_envio else 0
+            tasks.append({"type": "followup", "title": f"Seguimiento: {l.nombre}", "sub": f"Sin respuesta hace {days_ago} dias", "priority": "medium"})
+        ready = [l for l in leads if l.stage == "ready_deploy"]
+        for l in ready[:2]:
+            tasks.append({"type": "deploy", "title": f"Publicar sitio de {l.nombre}", "sub": "Listo para deploy", "priority": "medium"})
+        prio = {"high": 0, "medium": 1, "low": 2}
+        tasks.sort(key=lambda t: prio.get(t["priority"], 2))
+
+        # Activity feed (synthetic from lead timestamps)
+        events = []
+        for l in sorted(leads, key=lambda x: x.updated_at or datetime.min, reverse=True)[:30]:
+            if l.live_url and l.stage in ("deployed", "link_sent", "completed") and l.updated_at and (now - l.updated_at).total_seconds() < 14 * 86400:
+                events.append({"type": "deployed", "label": "Sitio publicado", "client": l.nombre, "time": l.updated_at.isoformat(), "color": "accent"})
+            if l.fecha_respuesta and (now - l.fecha_respuesta).total_seconds() < 7 * 86400:
+                events.append({"type": "reply", "label": "Respondio por WhatsApp", "client": l.nombre, "time": l.fecha_respuesta.isoformat(), "color": "green"})
+            if l.fecha_envio and (now - l.fecha_envio).total_seconds() < 7 * 86400:
+                events.append({"type": "sent", "label": "Mensaje enviado", "client": l.nombre, "time": l.fecha_envio.isoformat(), "color": "blue"})
+            if l.created_at and (now - l.created_at).total_seconds() < 3 * 86400:
+                events.append({"type": "created", "label": "Lead importado", "client": l.nombre, "time": l.created_at.isoformat(), "color": "amber"})
+        events.sort(key=lambda e: e["time"], reverse=True)
+        events = events[:14]
+
+        # Insights
+        insights = []
+        if fu_leads:
+            insights.append({"type": "warning", "text": f"{len(fu_leads)} leads sin seguimiento hace mas de 3 dias."})
+        if ren_7d:
+            insights.append({"type": "urgent", "text": f"{len(ren_7d)} renovaciones vencen en los proximos 7 dias."})
+        cats = _kategorias(leads)
+        if cats:
+            best = max(cats, key=lambda c: c["tasa_interes"])
+            if best["tasa_interes"] > 0:
+                insights.append({"type": "positive", "text": f"'{best['nombre']}' convierte al {best['tasa_interes']}% — tu mejor categoria."})
+        if ready:
+            insights.append({"type": "action", "text": f"{len(ready)} sitios generados esperan ser publicados."})
+        if waiting:
+            insights.append({"type": "action", "text": f"{len(waiting)} leads respondieron y esperan tu respuesta."})
+        discovered_n = sum(1 for l in leads if l.stage == "discovered")
+        if discovered_n:
+            insights.append({"type": "info", "text": f"{discovered_n} leads nuevos listos para contactar."})
+
+        # Funnel with conversion % and drop highlighting
+        funnel = [
+            {"label": "Leads totales",     "value": stats["total"]},
+            {"label": "Enviados",          "value": stats["enviados"]},
+            {"label": "Respondieron",      "value": stats["respondieron"]},
+            {"label": "Interesados",       "value": stats["interesados"]},
+            {"label": "Demo generada",     "value": stats["con_web"]},
+            {"label": "Sitio live",        "value": stats["con_link"]},
+            {"label": "Clientes",          "value": stats["clientes"]},
+        ]
+        for i, step in enumerate(funnel):
+            if i == 0:
+                step["pct"] = 100.0
+                step["drop"] = 0.0
+            else:
+                prev = funnel[i - 1]["value"] or 1
+                step["pct"] = round(step["value"] / prev * 100, 1)
+                step["drop"] = round(100 - step["pct"], 1)
+        if len(funnel) > 1:
+            bi = max(range(1, len(funnel)), key=lambda i: funnel[i]["drop"])
+            funnel[bi]["biggest_drop"] = True
+
+        # Stage cards
+        stage_cards = [{"key": s, "label": STAGE_LABELS[s], "count": sum(1 for l in leads if l.stage == s)} for s in STAGE_CHOICES]
+        total_n = len(leads) or 1
+        for c in stage_cards:
+            c["pct"] = round(c["count"] / total_n * 100, 1)
+
+        # Enriched category table
+        pago_map: dict = defaultdict(float)
+        phone_to_cat = {l.telefono: (l.categoria or "General") for l in leads}
+        for p in pagos:
+            if p.estado == "pagado" and p.monto and p.moneda == "ARS":
+                cat = phone_to_cat.get(p.telefono, "General")
+                pago_map[cat] += p.monto
+        # Add respondieron per category
+        resp_map: dict = defaultdict(int)
+        for l in leads:
+            if l.estado_respuesta and l.estado_respuesta != "neutral":
+                resp_map[l.categoria or "General"] += 1
+        cats_enriched = []
+        for c in cats:
+            c["respondieron"] = resp_map.get(c["nombre"], 0)
+            c["revenue"] = pago_map.get(c["nombre"], 0)
+            cats_enriched.append(c)
+
+        return jsonify({
+            "mrr": mrr, "mrr_prev": mrr_prev, "mrr_delta": mrr - mrr_prev,
+            "mrr_ars": mrr_ars, "mrr_usd": mrr_usd,
+            "mrr_prev_ars": mrr_prev_ars, "mrr_prev_usd": mrr_prev_usd,
+            "clients_count": len(clients), "clients_new": len(new_this_month),
+            "follow_ups_count": len(fu_leads),
+            "renewals_soon": len(ren_7d), "renewals_overdue": len(ren_overdue),
+            "tasks": tasks[:8], "activity": events, "insights": insights[:6],
+            "funnel": funnel, "stage_cards": stage_cards, "categorias": cats_enriched,
+            "stats": stats,
+            "renewal_count": sum(len(v) for v in all_renewals.values()),
+        })
+    finally:
+        session.close()
+
 
 @app.route("/api/dashboard")
 def api_dashboard():
@@ -402,16 +559,18 @@ def create_lead():
             return err("Teléfono ya existe"), 409
 
         lead = Lead(
-            lead_id   = str(uuid.uuid4()),
-            nombre    = body["nombre"],
-            telefono  = body["telefono"],
-            categoria = body.get("categoria", ""),
-            direccion = body.get("direccion", ""),
-            ciudad    = body.get("ciudad", "Rosario"),
-            score     = int(body.get("score", 0)),
-            notas     = body.get("notas", ""),
-            stage     = body.get("stage", "discovered"),
-            prioridad = int(body.get("prioridad", 3)),
+            lead_id        = str(uuid.uuid4()),
+            nombre         = body["nombre"],
+            telefono       = body["telefono"],
+            categoria      = body.get("categoria", ""),
+            direccion      = body.get("direccion", ""),
+            ciudad         = body.get("ciudad", "Rosario"),
+            score          = int(body.get("score", 0)),
+            notas          = body.get("notas", ""),
+            stage          = body.get("stage", "discovered"),
+            prioridad      = int(body.get("prioridad", 3)),
+            live_url       = body.get("live_url") or None,
+            fecha_entrega  = body.get("fecha_entrega") or None,
         )
         session.add(lead)
         session.commit()
@@ -466,12 +625,14 @@ def api_pipeline_start(stage: str):
         return err(f"Stage '{stage}' already running as job {active['job_id']}", 409)
 
     STAGES = {
-        "scrape":         lambda jid: stage_scrape(jid),
+        "scrape":         lambda jid: stage_scrape(jid, body.get("queries"), body.get("account", "both")),
         "discover":       lambda jid: stage_discover(jid, body.get("dataset_file")),
         "send":           lambda jid: stage_send(jid, body.get("limit")),
         "generate_webs":  lambda jid: stage_generate_webs(jid, body.get("lead_ids")),
         "deploy":         lambda jid: stage_deploy(jid, body.get("lead_ids")),
         "send_links":     lambda jid: stage_send_links(jid, body.get("lead_ids")),
+        "followup":       lambda jid: stage_followup(jid, body.get("lead_ids", []), body.get("message_index", 0)),
+        "social_post":    lambda jid: stage_social_post(jid, body.get("lead_ids", []), body.get("post_type", "servicio")),
     }
 
     if stage not in STAGES:
@@ -608,6 +769,40 @@ def api_analytics():
         session.close()
 
 
+# ── Dólar API ─────────────────────────────────────────────────
+
+_dolar_cache: dict = {"data": None, "ts": None}
+
+@app.route("/api/dolar")
+def api_dolar():
+    import urllib.request as _urlreq
+    import json as _json
+    now = datetime.utcnow()
+    if _dolar_cache["data"] and _dolar_cache["ts"] and (now - _dolar_cache["ts"]).total_seconds() < 1800:
+        return jsonify(_dolar_cache["data"])
+    try:
+        req = _urlreq.Request(
+            "https://dolarapi.com/v1/dolares/oficial",
+            headers={"User-Agent": "BinarioCRM/1.0"},
+        )
+        with _urlreq.urlopen(req, timeout=5) as r:
+            raw = _json.loads(r.read())
+        mid = round((raw["compra"] + raw["venta"]) / 2, 2)
+        data = {
+            "compra": raw["compra"],
+            "venta": raw["venta"],
+            "mid": mid,
+            "updated_at": raw.get("fechaActualizacion", ""),
+        }
+        _dolar_cache["data"] = data
+        _dolar_cache["ts"] = now
+        return jsonify(data)
+    except Exception as exc:
+        if _dolar_cache["data"]:
+            return jsonify({**_dolar_cache["data"], "stale": True})
+        return jsonify({"error": str(exc), "mid": None}), 503
+
+
 # ── Finanzas API ──────────────────────────────────────────────
 
 @app.route("/api/finanzas")
@@ -615,8 +810,8 @@ def api_finanzas():
     session = Session()
     try:
         pagos = session.query(Finanza).order_by(Finanza.created_at.desc()).all()
-        pagados   = [p for p in pagos if p.estado == "pagado"]
-        pendientes = [p for p in pagos if p.estado in ("pendiente", "parcial")]
+        pagados    = [p for p in pagos if p.estado in ("pagado", "parcial")]
+        pendientes = [p for p in pagos if p.estado == "pendiente"]
         total_ars = sum(p.monto for p in pagados if p.moneda == "ARS" and p.monto)
         total_usd = sum(p.monto for p in pagados if p.moneda == "USD" and p.monto)
         pend_ars  = sum(p.monto for p in pendientes if p.moneda == "ARS" and p.monto)
@@ -658,9 +853,10 @@ def create_pago():
             if lead:
                 lead_id = lead.id
 
-        # Update or create
+        # Update or create (force_create bypasses upsert — used for monthly payment registration)
+        force_create = body.get("force_create", False)
         existing = None
-        if tel:
+        if tel and not force_create:
             existing = session.query(Finanza).filter_by(telefono=tel).first()
 
         if existing:
@@ -686,6 +882,36 @@ def create_pago():
             )
             session.add(pago)
 
+        session.commit()
+        return ok({"pago": pago.to_dict()})
+    except Exception as e:
+        session.rollback()
+        return err(str(e))
+    finally:
+        session.close()
+
+
+@app.route("/api/finanzas/pago/<int:pago_id>", methods=["PUT"])
+def update_pago(pago_id: int):
+    body = get_json_body()
+    session = Session()
+    try:
+        pago = session.query(Finanza).filter_by(id=pago_id).first()
+        if not pago:
+            return err("Pago no encontrado", 404)
+        if "monto" in body:
+            pago.monto = float(body["monto"])
+        if "moneda" in body:
+            pago.moneda = body["moneda"]
+        if "estado" in body:
+            pago.estado = body["estado"]
+        if "notas" in body:
+            pago.notas = body["notas"]
+        if body.get("fecha"):
+            try:
+                pago.fecha = date.fromisoformat(str(body["fecha"])[:10])
+            except ValueError:
+                pass
         session.commit()
         return ok({"pago": pago.to_dict()})
     except Exception as e:
@@ -787,6 +1013,20 @@ def delete_template(tid: int):
         session.close()
 
 
+# ── Niches API ────────────────────────────────────────────────
+
+@app.route("/api/niches")
+def api_niches():
+    from config import config
+    niches = {}
+    for key, val in config.NICHES.items():
+        niches[key] = {
+            "label": key.replace("_", " ").capitalize(),
+            "queries": val.get("queries", []),
+        }
+    return jsonify({"niches": niches})
+
+
 # ── Config API ────────────────────────────────────────────────
 
 @app.route("/api/config")
@@ -883,6 +1123,152 @@ def regenerate_website(lead_id: int):
     return ok({"job_id": job_id})
 
 
+# ── Clientes API ──────────────────────────────────────────────
+
+@app.route("/api/clientes")
+def api_clientes():
+    session = Session()
+    try:
+        clientes = (
+            session.query(Lead)
+            .filter(Lead.fecha_entrega != None)
+            .order_by(Lead.fecha_entrega.desc())
+            .all()
+        )
+        return jsonify({"clientes": [l.to_dict() for l in clientes]})
+    finally:
+        session.close()
+
+
+@app.route("/api/generate-webs/candidates")
+def api_generate_webs_candidates():
+    """Returns all contacted leads for the web generation selection modal."""
+    session = Session()
+    try:
+        candidates = (
+            session.query(Lead)
+            .order_by(Lead.fecha_envio.desc(), Lead.created_at.desc())
+            .all()
+        )
+        return jsonify({
+            "candidates": [l.to_dict() for l in candidates],
+            "total": len(candidates),
+        })
+    finally:
+        session.close()
+
+
+@app.route("/api/social/test")
+def api_social_test():
+    """Test Social Media Agent connections."""
+    try:
+        from modules.social_agent import test_connections
+        results = test_connections()
+        return ok({"results": {k: {"status": s, "msg": m} for k, (s, m) in results.items()}})
+    except Exception as e:
+        return err(str(e))
+
+
+@app.route("/api/social/generate", methods=["POST"])
+def api_social_generate():
+    """Generate a post preview without publishing."""
+    body = get_json_body()
+    lead_id = body.get("lead_id")
+    post_type = body.get("post_type", "servicio")
+    session = Session()
+    try:
+        lead = session.query(Lead).filter_by(id=lead_id).first() if lead_id else None
+        client = lead.to_dict() if lead else {
+            "nombre": body.get("nombre", "Demo Negocio"),
+            "categoria": body.get("categoria", "negocio"),
+            "ciudad": "Rosario",
+        }
+    finally:
+        session.close()
+    try:
+        from modules.social_agent import generate_post_content, get_image_url, _niche_key
+        content = generate_post_content(client, post_type)
+        niche = _niche_key(client.get("categoria", ""))
+        image_url = get_image_url(content.get("image_query", "business"), niche)
+        return ok({"content": content, "image_url": image_url})
+    except Exception as e:
+        return err(str(e))
+
+
+@app.route("/api/followup/candidates")
+def api_followup_candidates():
+    """Returns all contacted leads for followup selection."""
+    session = Session()
+    try:
+        candidates = (
+            session.query(Lead)
+            .filter(Lead.enviado == True)
+            .order_by(Lead.fecha_envio.desc())
+            .all()
+        )
+        return jsonify({
+            "candidates": [l.to_dict() for l in candidates],
+            "total": len(candidates),
+            "messages": FOLLOWUP_MESSAGES,
+        })
+    finally:
+        session.close()
+
+
+@app.route("/api/send-links/candidates")
+def api_send_links_candidates():
+    """Returns all leads with a live URL that haven't had their link sent yet."""
+    session = Session()
+    try:
+        candidates = (
+            session.query(Lead)
+            .filter(Lead.enviado == True, Lead.live_url != None)
+            .order_by(Lead.updated_at.desc())
+            .all()
+        )
+        return jsonify({
+            "candidates": [l.to_dict() for l in candidates],
+            "total": len(candidates),
+        })
+    finally:
+        session.close()
+
+
+# ── File editor API ────────────────────────────────────────────
+
+@app.route("/api/files/read", methods=["POST"])
+def api_file_read():
+    body = get_json_body()
+    path = body.get("path", "")
+    if not path:
+        return err("path required")
+    try:
+        p = Path(path)
+        if not p.exists():
+            return err("File not found", 404)
+        if not p.is_file():
+            return err("Not a file", 400)
+        content = p.read_text(encoding="utf-8", errors="replace")
+        return ok({"content": content, "path": str(p), "size": p.stat().st_size})
+    except Exception as e:
+        return err(str(e))
+
+
+@app.route("/api/files/write", methods=["POST"])
+def api_file_write():
+    body = get_json_body()
+    path = body.get("path", "")
+    content = body.get("content", "")
+    if not path:
+        return err("path required")
+    try:
+        p = Path(path)
+        p.write_text(content, encoding="utf-8")
+        return ok({"path": str(p), "size": p.stat().st_size})
+    except Exception as e:
+        return err(str(e))
+
+
 # ── Migration & utilities ─────────────────────────────────────
 
 @app.route("/api/migrate", methods=["POST"])
@@ -929,6 +1315,236 @@ def api_dataset_status():
     })
 
 
+# ── WhatsApp Inbound ──────────────────────────────────────────
+
+_NTFY_ICONS = {
+    "positive_intent": "🔥",
+    "interest":        "👀",
+    "price_request":   "💰",
+    "info_request":    "❓",
+    "follow_up":       "🔄",
+    "rejection":       "❌",
+    "neutral":         "💬",
+}
+
+_NTFY_PRIORITY = {
+    "positive_intent": "urgent",
+    "interest":        "high",
+    "price_request":   "high",
+    "info_request":    "default",
+    "follow_up":       "default",
+    "rejection":       "low",
+    "neutral":         "min",
+}
+
+
+def _ntfy(title: str, body: str, category: str = "neutral"):
+    from config import config
+    import requests as _req
+    topic = config.NTFY_TOPIC
+    if not topic:
+        return
+    def _send():
+        try:
+            _req.post(
+                f"{config.NTFY_URL}/{topic}",
+                data=body.encode("utf-8"),
+                headers={
+                    "Title":    title,
+                    "Priority": _NTFY_PRIORITY.get(category, "default"),
+                    "Tags":     "whatsapp," + category,
+                },
+                timeout=5,
+            )
+        except Exception:
+            pass
+    threading.Thread(target=_send, daemon=True).start()
+
+
+@app.route("/wa-event", methods=["POST"])
+def wa_event():
+    """Receive events from the Node.js WhatsApp bridge."""
+    event = request.get_json(force=True, silent=True) or {}
+    if event.get("type") != "message":
+        return jsonify({"status": "ack", "type": event.get("type")})
+
+    phone = event.get("phone", "")
+    text  = event.get("message", "")
+    if not phone:
+        return jsonify({"status": "ignored", "reason": "no_phone"})
+
+    from modules.classifier import classify
+    result = classify(text)
+
+    _PRIO = {
+        "": 0, "neutral": 1, "info_request": 2, "follow_up": 2,
+        "price_request": 3, "interest": 4, "positive_intent": 5, "rejection": 6,
+    }
+
+    def _norm(p: str) -> str:
+        digits = "".join(c for c in (p or "") if c.isdigit())
+        return digits if digits.startswith("54") else "54" + digits
+
+    norm_in = _norm(phone)
+    session = Session()
+    try:
+        lead = next(
+            (l for l in session.query(Lead).filter(Lead.enviado == True).all()
+             if _norm(l.telefono or "") == norm_in),
+            None,
+        )
+        if lead is None:
+            return jsonify({"status": "stored", "linked": False, "category": result.category})
+
+        current = lead.estado_respuesta or ""
+        if _PRIO.get(result.category, 0) >= _PRIO.get(current, 0):
+            lead.estado_respuesta = result.category
+            lead.fecha_respuesta = datetime.utcnow()
+            if result.category in ("interest", "positive_intent", "price_request", "follow_up"):
+                if lead.stage == "sent":
+                    lead.stage = "waiting"
+            session.commit()
+            socketio.emit("lead_update", {"lead": lead.to_dict()})
+
+            icon = _NTFY_ICONS.get(result.category, "💬")
+            nombre = lead.nombre or phone
+            _ntfy(
+                title=f"{icon} {nombre} contestó",
+                body=text[:200] if text else "(sin texto)",
+                category=result.category,
+            )
+
+        return jsonify({"status": "processed", "category": result.category, "confidence": result.confidence})
+    except Exception as exc:
+        session.rollback()
+        return jsonify({"status": "error", "error": str(exc)}), 500
+    finally:
+        session.close()
+
+
+# ── WhatsApp Response Sync ────────────────────────────────────
+
+def _sync_responses_from_bridge() -> dict:
+    """
+    Pull WhatsApp responses persisted by the bridge (wa_responses.json)
+    and update leads in SQLite. Safe to call even when bridge is offline.
+    Works in two modes:
+      - Bridge running: GET /responses?since=<last_sync> via HTTP
+      - Bridge offline: read wa_responses.json directly
+    Returns {"synced": N, "total": M}
+    """
+    import requests as _req
+    from config import config
+    from modules.classifier import classify
+
+    _PRIO = {
+        "": 0, "neutral": 1, "info_request": 2, "follow_up": 2,
+        "price_request": 3, "interest": 4, "positive_intent": 5, "rejection": 6,
+    }
+
+    # Retrieve last sync timestamp from DB config
+    session = Session()
+    try:
+        cfg_row = session.query(AppConfig).filter_by(key="wa_last_sync").first()
+        last_sync = cfg_row.value if cfg_row else "1970-01-01T00:00:00Z"
+    finally:
+        session.close()
+
+    # Try HTTP first, fall back to reading the file directly
+    _headers = {"X-Bridge-Secret": config.BRIDGE_SECRET} if config.BRIDGE_SECRET else {}
+    responses = []
+    try:
+        r = _req.get(
+            f"{config.WA_BRIDGE_URL}/responses",
+            params={"since": last_sync},
+            headers=_headers,
+            timeout=4,
+        )
+        responses = r.json().get("responses", [])
+    except Exception:
+        # Bridge offline — read file directly
+        rf = config.WA_RESPONSES_FILE
+        if rf.exists():
+            try:
+                with open(rf, encoding="utf-8") as f:
+                    all_resp = json.load(f)
+                responses = [r for r in all_resp if r.get("timestamp", "") > last_sync]
+            except Exception:
+                pass
+
+    if not responses:
+        return {"synced": 0, "total": 0}
+
+    session = Session()
+    updated = 0
+    try:
+        all_sent = session.query(Lead).filter(Lead.enviado == True).all()
+
+        for event in responses:
+            phone = event.get("phone", "")
+            text  = event.get("message", "")
+            ts    = event.get("timestamp", "")
+            if not phone:
+                continue
+
+            result = classify(text)
+
+            # Match by last 8 digits (strips country + area codes)
+            suffix = "".join(c for c in phone if c.isdigit())[-8:]
+            lead = next(
+                (l for l in all_sent
+                 if "".join(c for c in (l.telefono or "") if c.isdigit()).endswith(suffix)),
+                None,
+            )
+            if not lead:
+                continue
+
+            current = lead.estado_respuesta or ""
+            if _PRIO.get(result.category, 0) >= _PRIO.get(current, 0):
+                lead.estado_respuesta = result.category
+                lead.fecha_respuesta  = ts
+                if result.category in ("interest", "positive_intent", "price_request", "follow_up"):
+                    if lead.stage == "sent":
+                        lead.stage = "waiting"
+                updated += 1
+
+        session.commit()
+
+        # Emit socket updates for changed leads
+        for lead in all_sent:
+            if lead.estado_respuesta:
+                socketio.emit("lead_update", {"lead": lead.to_dict()})
+
+        # Persist last sync time
+        session2 = Session()
+        try:
+            cfg = session2.query(AppConfig).filter_by(key="wa_last_sync").first()
+            if not cfg:
+                cfg = AppConfig(key="wa_last_sync", value="")
+                session2.add(cfg)
+            cfg.value = datetime.utcnow().isoformat() + "Z"
+            session2.commit()
+        finally:
+            session2.close()
+
+    except Exception:
+        session.rollback()
+    finally:
+        session.close()
+
+    return {"synced": updated, "total": len(responses)}
+
+
+@app.route("/api/sync-responses", methods=["POST"])
+def api_sync_responses():
+    """Sync WhatsApp responses from bridge — call on demand or at startup."""
+    try:
+        result = _sync_responses_from_bridge()
+        return ok(result)
+    except Exception as e:
+        return err(str(e))
+
+
 # ── SocketIO Events ───────────────────────────────────────────
 
 @socketio.on("connect")
@@ -967,6 +1583,19 @@ def _bootstrap():
                 print(f"✅ Auto-migrated {n} leads from estado.csv")
         except Exception as e:
             print(f"⚠️  Auto-migrate failed: {e}")
+
+    # Sync WhatsApp responses received while the CRM was offline
+    def _deferred_sync():
+        import time as _t
+        _t.sleep(3)  # wait for SocketIO to be ready
+        try:
+            result = _sync_responses_from_bridge()
+            if result["total"] > 0:
+                print(f"📱 WA sync: {result['synced']} respuestas nuevas de {result['total']} totales")
+        except Exception as exc:
+            print(f"⚠️  WA sync failed: {exc}")
+
+    threading.Thread(target=_deferred_sync, daemon=True).start()
 
 
 _bootstrap()

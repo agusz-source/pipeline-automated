@@ -14,7 +14,7 @@ STATUS="$PROJECT_DIR/data/estado.csv"
 
 echo ""
 echo "========================================"
-echo "  LeadGen Amoblamientos — Rosario"
+echo "  Binario Websites — Pipeline"
 echo "========================================"
 echo "  1) Scraping (Apify → dataset.json)"
 echo "  2) Discovery (leer dataset)"
@@ -24,9 +24,11 @@ echo "  5) Desplegar (Vercel)"
 echo "  6) Enviar links a clientes"
 echo "  7) Pipeline completo"
 echo "  8) Estado del pipeline"
-echo "  9) Dashboard web"
-echo " 10) Receptor de respuestas WhatsApp"
-echo " 11) Migrar estado.csv (agregar columnas)"
+echo "  9) Dashboard + Bridge (todo junto)"
+echo " 10) Solo Bridge WhatsApp"
+echo " 11) Solo Dashboard"
+echo " 12) Migrar estado.csv (agregar columnas)"
+echo " 13) Instalar cloudflared (acceso móvil)"
 echo "  0) Salir"
 echo ""
 read -p "Opción: " opt
@@ -40,9 +42,18 @@ case $opt in
     6) python3 "$PROJECT_DIR/main.py" --send-links "$STATUS" ;;
     7) python3 "$PROJECT_DIR/main.py" --full "$DATASET" "$STATUS" ;;
     8) python3 "$PROJECT_DIR/main.py" --status "$STATUS" ;;
-    9) python3 "$PROJECT_DIR/dashboard/app.py" ;;
-   10) cd "$PROJECT_DIR/whatsapp_bridge" && node index.js ;;
-   11) python3 "$PROJECT_DIR/main.py" --migrate "$STATUS" ;;
+    9) bash "$PROJECT_DIR/dashboard/run.sh" ;;
+   10) node "$PROJECT_DIR/whatsapp_bridge/index.js" ;;
+   11) bash "$PROJECT_DIR/dashboard/run.sh" ;;
+   12) python3 "$PROJECT_DIR/main.py" --migrate "$STATUS" ;;
+   13)
+        echo "Instalando cloudflared..."
+        curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
+            -o /tmp/cloudflared && \
+        chmod +x /tmp/cloudflared && \
+        sudo mv /tmp/cloudflared /usr/local/bin/cloudflared && \
+        echo "✅ cloudflared instalado. Iniciá opción 9 para usarlo."
+        ;;
     0) exit 0 ;;
     *) echo "Opción inválida" ;;
 esac

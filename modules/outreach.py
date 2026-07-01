@@ -66,18 +66,8 @@ def _es_link_whatsapp(website: str) -> bool:
 
 
 def limpiar_telefono(telefono: str) -> str | None:
-    if not telefono or not telefono.strip():
-        return None
-    digits = re.sub(r"[^\d]", "", telefono)
-    if not digits:
-        return None
-    if digits.startswith("54"):
-        return digits
-    if len(digits) == 10:
-        return "54" + digits
-    if len(digits) == 11 and digits.startswith("9"):
-        return "54" + digits
-    return digits
+    from modules.phone_validator import normalizar_telefono
+    return normalizar_telefono(telefono)
 
 
 def extraer_link_whatsapp(negocio: dict) -> tuple[str | None, str]:

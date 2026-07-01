@@ -1,203 +1,165 @@
-# modules/osm_discovery.py - OpenStreetMap Lead Discovery (WHATSAPP ONLY PRO)
+"""
+OSM scraper — queries Overpass API for businesses in Rosario, AR.
+Returns records in the same format as the Apify scraper so they pass
+through filter_leads and stage_discover without changes.
+"""
 
-import requests
-import json
+import re
 import time
-from datetime import datetime
-from colorama import Fore
+import requests
 from config import config
 
+OVERPASS_URL = "https://overpass.kumi.systems/api/interpreter"
 
-class OSMDiscovery:
-    def __init__(self):
-        self.endpoints = [
-           # "https://overpass-api.de/api/interpreter",
-            "https://overpass.kumi.systems/api/interpreter"
-        ]
+# OSM tag → list of Overpass tag filters
+_OSM_NICHES = {
+    "amoblamientos": [
+        '["shop"="furniture"]',
+        '["shop"="kitchen"]',
+        '["craft"="cabinet_maker"]',
+        '["shop"="interior_decoration"]',
+    ],
+    "estetica": [
+        '["shop"="beauty"]',
+        '["shop"="hairdresser"]',
+        '["shop"="nail_salon"]',
+        '["amenity"="beauty_salon"]',
+    ],
+    "gimnasio": [
+        '["leisure"="fitness_centre"]',
+        '["leisure"="sports_centre"]',
+        '["sport"="yoga"]',
+        '["sport"="crossfit"]',
+    ],
+    "cerrajeria": [
+        '["shop"="locksmith"]',
+    ],
+}
 
-        self.lat = config.LATITUD
-        self.lon = config.LONGITUD
+_SOCIAL_DOMAINS = frozenset([
+    "instagram.com", "facebook.com", "fb.com", "twitter.com", "x.com",
+    "linktr.ee", "wa.me", "whatsapp.com",
+])
 
-        self.max_total = 20
 
-    def search_places(self, categoria: str, max_por_cat: int) -> list:
+def _normalize_phone(raw: str) -> str:
+    """Normalize Argentine phone to international format (no +)."""
+    if not raw:
+        return ""
+    digits = re.sub(r"\D", "", raw)
+    if digits.startswith("0"):
+        digits = digits[1:]
+    if digits.startswith("15") and len(digits) == 12:
+        digits = digits[:2] + digits[4:]
+    if len(digits) == 10:
+        digits = "54" + digits
+    if len(digits) == 11 and not digits.startswith("54"):
+        digits = "54" + digits
+    if not (11 <= len(digits) <= 15):
+        return ""
+    return "+" + digits
 
-        osm_map = {
-            "cerrajeria cerrajero": '["shop"="locksmith"]',
-            "cafe cafeteria": '["amenity"="cafe"]',
-            "restaurante": '["amenity"="restaurant"]',
-            "salon belleza estetica": '["shop"="beauty"]'
-        }
 
-        tag = osm_map.get(categoria)
-        if not tag:
+def _has_real_website(url: str) -> bool:
+    if not url:
+        return False
+    return not any(d in url.lower() for d in _SOCIAL_DOMAINS)
+
+
+def _query_overpass(tag_filter: str, lat: float, lon: float, radius: int) -> list[dict]:
+    """Run a single Overpass query and return raw elements."""
+    query = f"""
+[out:json][timeout:90];
+(
+  node{tag_filter}(around:{radius},{lat},{lon});
+  way{tag_filter}(around:{radius},{lat},{lon});
+  relation{tag_filter}(around:{radius},{lat},{lon});
+);
+out center tags;
+"""
+    try:
+        r = requests.post(
+            OVERPASS_URL,
+            data={"data": query},
+            timeout=(10, 90),
+            headers={"Accept-Charset": "utf-8"},
+        )
+        if r.status_code != 200:
             return []
-
-        query = f"""
-        [out:json][timeout:120];
-        (
-          node{tag}(around:{config.RADIO_BUSQUEDA},{self.lat},{self.lon});
-          way{tag}(around:{config.RADIO_BUSQUEDA},{self.lat},{self.lon});
-        );
-        out center;
-        """
-
-        print(f"{Fore.CYAN}🔍 Buscando en OSM: {categoria}")
-
-        for endpoint in self.endpoints:
-            try:
-                response = requests.post(
-                    endpoint,
-                    data=query,
-                    timeout=(5, 120),
-                    headers={"Content-Type": "application/x-www-form-urlencoded"}
-                )
-
-                if response.status_code != 200:
-                    continue
-
-                try:
-                    data = response.json()
-                except:
-                    continue
-
-                resultados = []
-                seen = set()
-
-                for element in data.get("elements", []):
-                    tags = element.get("tags", {})
-
-                    nombre = tags.get("name")
-                    if not nombre or nombre in seen:
-                        continue
-                    seen.add(nombre)
-
-                    # 📞 SOLO WHATSAPP (móvil real)
-                    raw_phone = tags.get("phone") or tags.get("contact:phone")
-                    if not raw_phone:
-                        continue
-
-                    phone = self._extract_mobile_whatsapp(raw_phone)
-
-                    # ❌ si no es móvil válido → descartar
-                    if not phone:
-                        continue
-
-                    # dirección
-                    direccion = tags.get("addr:street", "")
-                    if tags.get("addr:housenumber"):
-                        direccion += " " + tags.get("addr:housenumber")
-                    if not direccion:
-                        direccion = "Rosario"
-
-                    negocio = {
-                        "nombre": nombre,
-                        "categoria": categoria,
-                        "direccion": direccion,
-                        "telefono": phone,
-                        "whatsapp": f"https://wa.me/{phone}",
-                        "website": tags.get("website", ""),
-                        "source": "OSM"
-                    }
-
-                    resultados.append(negocio)
-                    print(f"{Fore.GREEN}  ✓ {nombre} (WhatsApp OK)")
-
-                    if len(resultados) >= max_por_cat:
-                        break
-
-                if resultados:
-                    return resultados
-
-            except Exception as e:
-                print(f"{Fore.YELLOW}  → Error {endpoint}: {e}")
-                continue
-
-            finally:
-                time.sleep(1.5)
-
+        return r.json().get("elements", [])
+    except Exception:
         return []
 
-    def _extract_mobile_whatsapp(self, raw: str) -> str:
-        """
-        Detecta si es número móvil (WhatsApp) válido.
-        ❌ descarta fijos
-        ✔ devuelve solo móviles en formato wa.me
-        """
 
-        if not raw:
-            return ""
+def scrape_osm(niches: list[str] | None = None, max_per_niche: int = 40) -> list[dict]:
+    """
+    Scrape Overpass/OSM for businesses in Rosario.
+    Returns records in the same format as the Apify scraper.
+    """
+    lat = config.LATITUD
+    lon = config.LONGITUD
+    radius = getattr(config, "RADIO_BUSQUEDA", 12000)
 
-        digits = ''.join(filter(str.isdigit, raw))
+    if niches is None:
+        niches = list(_OSM_NICHES.keys())
 
-        # Argentina normalización básica
-        if digits.startswith("0"):
-            digits = digits[1:]
+    results: list[dict] = []
+    seen_names: set[str] = set()
 
-        if digits.startswith("15"):
-            digits = digits[2:]
+    for niche in niches:
+        tag_filters = _OSM_NICHES.get(niche, [])
+        if not tag_filters:
+            continue
 
-        # caso móvil argentino típico
-        # 10 dígitos + prefijo móvil
-        if len(digits) == 10:
-            digits = "54" + digits
-
-        # validar mínimo razonable internacional
-        if len(digits) < 11 or len(digits) > 15:
-            return ""
-
-        # ❌ filtro de teléfonos fijos argentinos comunes
-        # (muy aproximado pero útil)
-        local_prefixes_fijos = ["341", "342", "343", "351", "362", "370", "381", "387"]
-        if len(digits) == 12:  # 54 + 10 digits
-            local_area = digits[2:5]
-            if local_area in local_prefixes_fijos:
-                return ""
-
-        return digits
-
-    def scan_all(self) -> list:
-        """20 leads TOTAL SOLO con WhatsApp válido"""
-
-        todos = []
-        seen = set()
-
-        categorias = config.CATEGORIAS
-        n = len(categorias)
-
-        base = self.max_total // n
-        resto = self.max_total % n
-
-        for i, cat in enumerate(categorias):
-
-            if len(todos) >= self.max_total:
+        niche_results: list[dict] = []
+        for tag_filter in tag_filters:
+            if len(niche_results) >= max_per_niche:
                 break
-
-            max_por_cat = base + (1 if i < resto else 0)
-
-            resultados = self.search_places(cat, max_por_cat)
-
-            for r in resultados:
-                if r["nombre"] in seen:
+            elements = _query_overpass(tag_filter, lat, lon, radius)
+            for el in elements:
+                if len(niche_results) >= max_per_niche:
+                    break
+                tags = el.get("tags", {})
+                name = tags.get("name", "").strip()
+                if not name or name in seen_names:
                     continue
 
-                seen.add(r["nombre"])
-                todos.append(r)
+                phone_raw = tags.get("phone") or tags.get("contact:phone") or tags.get("mobile") or ""
+                phone = _normalize_phone(phone_raw)
 
-                if len(todos) >= self.max_total:
-                    break
+                website = tags.get("website") or tags.get("contact:website") or tags.get("url") or ""
 
-            time.sleep(1)
+                street = tags.get("addr:street", "")
+                housenumber = tags.get("addr:housenumber", "")
+                direccion = (street + " " + housenumber).strip() or "Rosario"
 
-        # guardar
-        with open(config.LEADS_FILE, "w", encoding="utf-8") as f:
-            json.dump({
-                "leads": todos,
-                "total": len(todos),
-                "fecha": datetime.now().isoformat(),
-                "source": "OSM_WHATSAPP_ONLY"
-            }, f, indent=2, ensure_ascii=False)
+                rec = {
+                    "title": name,
+                    "nombre": name,
+                    "categoryName": niche,
+                    "categoria": niche,
+                    "categories": [niche],
+                    "phone": phone,
+                    "telefono": phone,
+                    "street": direccion,
+                    "direccion": direccion,
+                    "city": "Rosario",
+                    "ciudad": "Rosario",
+                    "state": "Santa Fe",
+                    "countryCode": "AR",
+                    "website": website if not _has_real_website(website) else website,
+                    "totalScore": tags.get("stars"),
+                    "reviewsCount": 0,
+                    "permanentlyClosed": False,
+                    "source": "OSM",
+                }
+                # Filter: if they have a real website, mark it so filter_leads can exclude them
+                # (OSM leads without website are our targets)
+                seen_names.add(name)
+                niche_results.append(rec)
 
-        print(f"{Fore.GREEN}✅ WhatsApp leads finales: {len(todos)}")
+            time.sleep(1.5)
 
-        return todos
+        results.extend(niche_results)
+
+    return results

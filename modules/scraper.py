@@ -25,9 +25,22 @@ from config import config
 init(autoreset=True)
 
 ACTOR_ID = config.APIFY_ACTOR_ID
-TOKEN = config.APIFY_TOKEN
 DATASET_OUT = config.DATASET_FILE
 APIFY_API_BASE = "https://api.apify.com/v2"
+
+# Token pool — rotamos por query para distribuir el uso entre cuentas
+_TOKENS = [t for t in [config.APIFY_TOKEN, config.APIFY_TOKEN_2] if t]
+TOKEN = _TOKENS[0] if _TOKENS else ""
+
+
+def _pick_token(index: int) -> str:
+    """Devuelve el token correspondiente al índice de query (round-robin)."""
+    if not _TOKENS:
+        return ""
+    tok = _TOKENS[index % len(_TOKENS)]
+    cuenta = (index % len(_TOKENS)) + 1
+    print(f"{Fore.CYAN}     cuenta {cuenta}/{len(_TOKENS)}")
+    return tok
 
 # How many results to request per search query
 RESULTS_PER_QUERY = 50
@@ -145,7 +158,7 @@ def _scrape_via_cli(queries: list[str]) -> list[dict] | None:
 
 def _scrape_via_api(queries: list[str]) -> list[dict] | None:
     """Run actor via Apify REST API (run-sync) and return results."""
-    if not TOKEN:
+    if not _TOKENS:
         print(f"{Fore.RED}❌ APIFY_TOKEN no configurado en .env")
         return None
 
@@ -154,7 +167,8 @@ def _scrape_via_api(queries: list[str]) -> list[dict] | None:
     all_results = []
     seen_phones = set()
 
-    for query in queries:
+    for idx, query in enumerate(queries):
+        token = _pick_token(idx)
         print(f"{Fore.CYAN}  🔍 Buscando: {query}")
 
         actor_input = _build_actor_input(query)
@@ -164,7 +178,7 @@ def _scrape_via_api(queries: list[str]) -> list[dict] | None:
             resp = requests.post(
                 url,
                 json=actor_input,
-                params={"token": TOKEN},
+                params={"token": token},
                 timeout=300,
                 headers={"Content-Type": "application/json"},
             )
@@ -204,7 +218,7 @@ def _scrape_via_api(queries: list[str]) -> list[dict] | None:
 
 def _scrape_via_async_api(queries: list[str]) -> list[dict] | None:
     """Start actor run, poll until done, fetch dataset."""
-    if not TOKEN:
+    if not _TOKENS:
         return None
 
     print(f"{Fore.CYAN}⏳ Usando Apify API async...")
@@ -212,7 +226,8 @@ def _scrape_via_async_api(queries: list[str]) -> list[dict] | None:
     all_results = []
     seen_phones = set()
 
-    for query in queries:
+    for idx, query in enumerate(queries):
+        token = _pick_token(idx)
         print(f"{Fore.CYAN}  🔍 Buscando: {query}")
         actor_input = _build_actor_input(query)
 
@@ -222,7 +237,7 @@ def _scrape_via_async_api(queries: list[str]) -> list[dict] | None:
             run_resp = requests.post(
                 run_url,
                 json=actor_input,
-                params={"token": TOKEN},
+                params={"token": token},
                 timeout=30,
             )
             if run_resp.status_code not in (200, 201):
@@ -240,7 +255,7 @@ def _scrape_via_async_api(queries: list[str]) -> list[dict] | None:
         while time.time() < timeout_at:
             time.sleep(8)
             try:
-                st = requests.get(status_url, params={"token": TOKEN}, timeout=15).json()
+                st = requests.get(status_url, params={"token": token}, timeout=15).json()
                 status = st["data"]["status"]
                 if status == "SUCCEEDED":
                     break
@@ -263,7 +278,7 @@ def _scrape_via_async_api(queries: list[str]) -> list[dict] | None:
         try:
             items = requests.get(
                 items_url,
-                params={"token": TOKEN, "format": "json"},
+                params={"token": token, "format": "json"},
                 timeout=60,
             ).json()
         except Exception as e:
@@ -289,50 +304,79 @@ def _scrape_via_async_api(queries: list[str]) -> list[dict] | None:
 
 # ── Public entry point ────────────────────────────────────────────────────────
 
+def _load_existing_dataset() -> tuple[list[dict], set[str]]:
+    """Load existing dataset.json and return (records, seen_phones)."""
+    if not DATASET_OUT.exists():
+        return [], set()
+    try:
+        with open(DATASET_OUT, "r", encoding="utf-8") as f:
+            records = json.load(f)
+        if not isinstance(records, list):
+            return [], set()
+        seen = {r.get("phone", "") for r in records if r.get("phone")}
+        return records, seen
+    except Exception:
+        return [], set()
+
+
 def run_scraper(queries: list[str] | None = None) -> list[dict]:
     """
-    Run Apify scraper for all configured queries.
+    Run Apify scraper for all configured queries across all niches.
     Tries CLI → sync API → async API.
-    Saves results to dataset.json and returns the list.
+    Merges new results into dataset.json (never overwrites existing records).
+    Returns the full accumulated dataset.
     """
     if queries is None:
         queries = config.APIFY_SEARCH_QUERIES
 
+    existing, existing_phones = _load_existing_dataset()
+
     print(f"\n{'='*60}")
-    print("🕷️  APIFY SCRAPER — Amoblamientos Rosario")
+    print(f"APIFY SCRAPER — {len(config.NICHES)} nichos, Rosario")
     print(f"{'='*60}")
-    print(f"   Queries: {len(queries)}")
+    print(f"   Queries:              {len(queries)}")
     print(f"   Resultados por query: {RESULTS_PER_QUERY}")
+    print(f"   Ya en dataset:        {len(existing)}")
     print(f"{'='*60}\n")
 
-    results = None
+    new_results = None
 
     # 1. CLI
     if _cli_available():
-        results = _scrape_via_cli(queries)
+        new_results = _scrape_via_cli(queries)
 
     # 2. run-sync API
-    if results is None and TOKEN:
-        results = _scrape_via_api(queries)
+    if new_results is None and TOKEN:
+        new_results = _scrape_via_api(queries)
 
     # 3. async API
-    if results is None and TOKEN:
-        results = _scrape_via_async_api(queries)
+    if new_results is None and TOKEN:
+        new_results = _scrape_via_async_api(queries)
 
-    if results is None:
-        print(f"\n{Fore.RED}❌ Scraping fallido. Verificá APIFY_TOKEN en .env")
-        print(f"{Fore.YELLOW}💡 Alternativa: copiá manualmente el JSON de Apify a dataset.json")
-        return []
+    if new_results is None:
+        print(f"\n{Fore.RED}Scraping fallido. Verificá APIFY_TOKEN en .env")
+        print(f"{Fore.YELLOW}Alternativa: copia manualmente el JSON de Apify a dataset.json")
+        return existing
 
-    # Save — always overwrite
+    # Merge — only append records whose phone isn't already in dataset
+    added = 0
+    for rec in new_results:
+        phone = rec.get("phone", "")
+        if phone and phone in existing_phones:
+            continue
+        if phone:
+            existing_phones.add(phone)
+        existing.append(rec)
+        added += 1
+
     DATASET_OUT.parent.mkdir(exist_ok=True)
     with open(DATASET_OUT, "w", encoding="utf-8") as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
+        json.dump(existing, f, ensure_ascii=False, indent=2)
 
-    print(f"\n{Fore.GREEN}✅ Scraping completado: {len(results)} registros")
-    print(f"   💾 Guardado en: {DATASET_OUT}")
+    print(f"\n{Fore.GREEN}Scraping completado: +{added} nuevos ({len(existing)} total)")
+    print(f"   Guardado en: {DATASET_OUT}")
 
-    return results
+    return existing
 
 
 if __name__ == "__main__":

@@ -1,176 +1,192 @@
 # Pipeline Automatizado — Binario Websites
 
-Automated outreach pipeline for local businesses in Rosario, Argentina. Discovers businesses without a proper website, sends a WhatsApp message offering a free demo site, generates the site using Claude or HTML templates, deploys it to Netlify and GitHub, then sends the live link back.
+Sistema automatizado de outreach por WhatsApp + generación de sitios web para negocios locales en Rosario, Argentina. Descubre negocios sin web, les manda un mensaje, genera el sitio, lo despliega y manda el link. Todo desde un dashboard web.
+
+---
+
+## Stack
+
+| Capa | Tecnología |
+|---|---|
+| Dashboard | Flask + Flask-SocketIO + SQLAlchemy (SQLite) |
+| WhatsApp bridge | Node.js + Baileys (headless, sin browser) |
+| Generación de sitios | Claude (Anthropic API) |
+| Despliegue | Vercel / GitHub |
+| Scraping | Apify (Google Places) + OSM fallback |
+| Imágenes stock | Pexels API (free) + Picsum fallback |
+| Agente social | Claude Haiku + Instagram Graph API |
+
+---
 
 ## Pipeline
 
 ```
-dataset.json  ->  [1] discover  ->  [2] send  ->  [3] generate-webs  ->  [4] deploy  ->  [5] send-links
+[1] Scrape  →  [2] Filtro/Scoring  →  [3] Envío WA  →  [4] Genera Web  →  [5] Deploy  →  [6] Envía Link  →  [7] Seguimiento
 ```
 
-State is tracked in `data/estado.csv` with one row per lead, updated at each stage.
+Cada etapa se lanza desde el dashboard como un job en background. El estado de cada lead se guarda en SQLite.
 
-## How each stage works
-
-**1. discover** — reads `dataset.json` and prints a summary of available leads (total, with phone, with website). Nothing is written.
-
-**2. send** — sends WhatsApp outreach messages via whatsplay (browser automation). Rotates through 20 message templates to avoid detection. Writes results to the CSV status file after each send.
-
-**3. generate-webs** — for every lead with `enviado=SI` and no `project_path`, generates an `index.html`/`styles.css`/`script.js` website using `claude -p <prompt>` with the lead's real data (name, address, phone, rating). Falls back to a pre-built HTML template matched by category if the CLI call fails.
-
-**4. deploy** — runs `git init`, commits, creates a new GitHub repo via `gh repo create`, and deploys to Netlify via `netlify deploy --prod`. Writes the live URL to the CSV.
-
-**5. send-links** — sends the Netlify URL back to each lead that has a `live_url` but no `enviado_links`.
-
-## Directory structure
-
-```
-pipeline-automated/
-├── main.py                  # CLI entry point and stage orchestration
-├── config.py                # Directory paths and environment config
-├── run.sh                   # Interactive menu shell script
-├── setup.sh                 # Initial environment setup
-├── dataset.json             # Input: businesses from Maps/OSM scrape
-├── data/
-│   └── estado.csv           # Pipeline state (generated at runtime)
-├── modules/
-│   ├── claude_builder.py    # Website generation via Claude CLI + template fallback
-│   ├── deploy.py            # GitHub + Netlify deployment
-│   ├── outreach.py          # WhatsApp message sending (whatsplay)
-│   ├── send_links.py        # WhatsApp link delivery
-│   ├── whatsapp.py          # Legacy Twilio-based sender
-│   ├── discovery.py         # Google Maps lead discovery
-│   ├── osm_discovery.py     # OpenStreetMap lead discovery
-│   ├── analyzer.py          # Lead scoring and filtering
-│   ├── analytics.py         # Analytics utilities
-│   └── messages.py          # Message template management
-├── templates/
-│   ├── barber.html
-│   ├── beauty.html
-│   ├── cafe.html
-│   ├── gym.html
-│   └── restaurant.html
-├── websites/                # Generated sites, one subdirectory per lead
-├── dashboard/
-│   ├── app.py               # Flask server on port 5000
-│   ├── templates/
-│   │   └── index.html
-│   └── static/
-│       ├── style.css
-│       └── script.js
-└── logs/
-```
-
-## Prerequisites
-
-- Python 3.11+
-- Claude CLI with an active session (`claude` binary in PATH)
-- GitHub CLI (`gh`) authenticated
-- Netlify CLI (`netlify`) authenticated
-- A WhatsApp account accessible from the machine (for whatsplay browser automation)
+---
 
 ## Setup
 
 ```bash
-git clone <repo-url>
-cd pipeline-automated
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-pip install flask whatsplay
+chmod +x setup.sh && ./setup.sh
 ```
 
-Set environment variables (`.env` file or export):
+El script hace todo de forma interactiva:
+- Crea el virtualenv e instala dependencias Python
+- Instala dependencias Node del bridge
+- Crea directorios y archivos de datos
+- Te pide las API keys una por una (con links e instrucciones)
+- Valida la conexión con Anthropic, Pexels e Instagram
+- Inicializa la base de datos SQLite
 
-```
-GITHUB_USERNAME=your_github_username
-```
+### Variables de entorno requeridas
 
-## Usage
-
-### Interactive menu
-
-```bash
-./run.sh
-```
-
-### Individual stages
-
-```bash
-# Preview the dataset
-python3 main.py --discover dataset.json
-
-# Send outreach messages and create estado.csv
-python3 main.py --send dataset.json data/estado.csv
-
-# Generate websites for interested leads
-python3 main.py --generate-webs data/estado.csv
-
-# Deploy to GitHub and Netlify
-python3 main.py --deploy data/estado.csv
-
-# Send live URLs via WhatsApp
-python3 main.py --send-links data/estado.csv
-
-# Run all stages in sequence
-python3 main.py --full dataset.json data/estado.csv
-
-# Show current pipeline status
-python3 main.py --status data/estado.csv
-```
-
-## Dataset format
-
-`dataset.json` is an array of business objects from Google Maps or OpenStreetMap:
-
-```json
-[
-  {
-    "title": "Peluqueria Lopez",
-    "phone": "3413001234",
-    "website": "https://instagram.com/peluquerialopez",
-    "categoryName": "Peluqueria",
-    "address": "Bv. Orono 1234, Rosario",
-    "rating": 4.7,
-    "reviewCount": 89
-  }
-]
-```
-
-Leads with a standalone website (`sitio_propio`) are skipped. Leads with only a social media profile, a WhatsApp link, or no website at all are targeted.
-
-## Status CSV columns
-
-| Column | Description |
+| Variable | Descripción |
 |---|---|
-| nombre | Business name |
-| telefono | Phone number |
-| categoria | Business category |
-| direccion | Address |
-| puntaje | Star rating |
-| resenas | Review count |
-| enviado | SI / NO |
-| fecha_envio | ISO timestamp of outreach send |
-| project_path | Local path to the generated site directory |
-| live_url | Netlify URL after deploy |
-| enviado_links | SI / NO |
-| fecha_envio_links | ISO timestamp of link delivery |
+| `ANTHROPIC_API_KEY` | Para generación de sitios y agente social |
+| `APIFY_TOKEN` | Scraping de Google Places |
+| `WA_BRIDGE_URL` | URL del bridge de WhatsApp (default: `http://localhost:3001`) |
+| `BRIDGE_SECRET` | Secret compartido entre dashboard y bridge |
+| `GITHUB_USERNAME` | Para deploy de sitios |
 
-## Dashboard
+### Variables opcionales
+
+| Variable | Descripción |
+|---|---|
+| `INSTAGRAM_ACCESS_TOKEN` | Agente de redes sociales |
+| `INSTAGRAM_BUSINESS_ID` | ID de cuenta de negocio de Meta |
+| `PEXELS_API_KEY` | Imágenes stock de calidad (tiene fallback sin key) |
+| `NTFY_TOPIC` | Push notifications via ntfy.sh |
+
+---
+
+## Correr el sistema
 
 ```bash
-cd dashboard
-python3 app.py
+# 1. Levantar el bridge de WhatsApp
+cd whatsapp_bridge && node index.js
+# Escanear el QR con WhatsApp la primera vez
+
+# 2. Levantar el dashboard
+cd dashboard && ./run.sh
+
+# Dashboard en: http://localhost:5000
 ```
 
-Open `http://localhost:5000`. The dashboard reads `data/estado.csv` directly and auto-refreshes every 30 seconds. It shows the pipeline funnel, per-stage KPIs, activity timeline, category breakdown, lead table with search/filter, and deployed sites.
+---
 
-## WhatsApp session
+## Estructura
 
-The outreach and send-links steps open a Chromium window via whatsplay for browser-based WhatsApp Web automation. The session is persisted in `~/whatsapp_session/` so the QR code scan is only required once.
+```
+pipeline-automated/
+├── config.py                    # Config centralizada, carga .env
+├── setup.sh                     # Setup interactivo completo
+├── run.sh                       # Script de inicio rápido
+├── requirements.txt
+│
+├── dashboard/
+│   ├── app.py                   # Flask app + todas las rutas API
+│   ├── database.py              # Modelos SQLAlchemy (Lead, Job)
+│   ├── workers.py               # Jobs en background (scrape, send, generate, etc.)
+│   ├── run.sh
+│   ├── static/
+│   │   ├── script.js            # Frontend SPA (vanilla JS)
+│   │   └── style.css
+│   └── templates/
+│       └── index.html           # Layout del dashboard
+│
+├── modules/
+│   ├── claude_builder.py        # Generación de sitios con Claude
+│   ├── scraper.py               # Integración con Apify
+│   ├── osm_discovery.py         # Fallback con OpenStreetMap
+│   ├── niche_filter.py          # Filtrado y scoring de leads
+│   ├── outreach.py              # Lógica de mensajes WA
+│   ├── deploy.py                # Deploy a Vercel/GitHub
+│   ├── send_links.py            # Envío de links generados
+│   ├── social_agent.py          # Agente de Instagram (Haiku + Pexels)
+│   └── phone_validator.py       # Validación de números
+│
+├── whatsapp_bridge/
+│   ├── index.js                 # Bridge HTTP ↔ WhatsApp (Baileys)
+│   ├── Dockerfile               # Para deploy en Fly.io
+│   └── fly.toml
+│
+├── websites/                    # Sitios generados (uno por lead)
+│   └── <nombre_negocio>/
+│       ├── index.html
+│       └── styles.css
+│
+└── data/
+    ├── pipeline.db              # Base de datos SQLite
+    └── wa_responses.json        # Respuestas de WhatsApp entrantes
+```
 
-## Website generation
+---
 
-`claude_builder.py` calls `claude -p <prompt>` to generate a custom site from the lead's real data (name, address, phone, rating, review count, category). The prompt explicitly instructs Claude not to use SaaS/startup templates and to produce something that feels local and specific.
+## Secciones del Dashboard
 
-Template fallback categories: `barber`, `beauty`, `cafe`, `gym`, `restaurant`.
+| Sección | Descripción |
+|---|---|
+| Dashboard | Métricas clave: leads, enviados, sitios generados, conversión |
+| Pipeline | Control de jobs: scrape, generate, send, deploy. Flujo visual del pipeline. |
+| CRM | Tabla completa de leads con filtros, edición y scoring |
+| Servicios | Gestión de servicios ofrecidos y precios |
+| Seguimientos | Seleccioná leads contactados → elegí el mensaje (1, 2 o 3) → mandá → se marca el tag automáticamente |
+| Websites | Vista de sitios generados con preview y links de deploy |
+| Finanzas | Registro de ingresos y egresos |
+| Clientes | Leads que cerraron como clientes |
+| Configuración | Nichos activos, parámetros del pipeline |
+
+---
+
+## Agente de Redes Sociales
+
+Genera y publica posts en Instagram sin intervención manual.
+
+```bash
+# Test de conexiones
+python modules/social_agent.py --test
+
+# Preview de contenido (sin publicar)
+python modules/social_agent.py --generate --nombre "Mi Negocio" --categoria "estetica" --tipo servicio
+
+# Publicar
+python modules/social_agent.py --publish --nombre "Mi Negocio" --categoria "estetica" --tipo motivacional
+```
+
+Tipos de post: `servicio`, `motivacional`, `tip`, `promo`, `comunidad`.
+
+Usa Claude Haiku para el copy, Pexels para imágenes stock, e Instagram Graph API para publicar. Todo gratuito salvo los tokens de Claude.
+
+---
+
+## WhatsApp Bridge en la nube (Fly.io)
+
+Para no depender de tener la PC encendida:
+
+```bash
+cd whatsapp_bridge
+fly launch
+fly secrets set BRIDGE_SECRET=tu_secret
+fly deploy
+```
+
+Actualizar en `.env`:
+```
+WA_BRIDGE_URL=https://tu-app.fly.dev
+```
+
+---
+
+## Seguimientos
+
+1. Ir a **Seguimientos** en el menú
+2. Elegir el mensaje (Seg. 1, 2 o 3)
+3. Seleccionar los leads
+4. Presionar **Enviar seguimientos**
+5. El sistema manda los mensajes por WhatsApp y marca cada lead con su tag en tiempo real
+
+Los mensajes se editan en `dashboard/workers.py` → `FOLLOWUP_MESSAGES`.

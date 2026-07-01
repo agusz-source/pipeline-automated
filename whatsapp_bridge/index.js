@@ -1,220 +1,182 @@
-/**
- * WhatsApp Bridge — Node.js
- *
- * Responsibilities:
- *   - Maintain WhatsApp Web session via whatsapp-web.js
- *   - Capture incoming messages
- *   - Forward structured events to Python message handler via HTTP
- *   - Expose a local HTTP API for Python to send messages through
- *   - Handle reconnection automatically
- *
- * Python sends messages → POST /send
- * Node sends events    → POST http://localhost:3002/wa-event
- */
-
 "use strict";
 
-const { Client, LocalAuth, MessageMedia } = require("whatsapp-web.js");
+const {
+  default: makeWASocket,
+  useMultiFileAuthState,
+  DisconnectReason,
+  fetchLatestBaileysVersion,
+} = require("@whiskeysockets/baileys");
 const qrcode = require("qrcode-terminal");
 const express = require("express");
-const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
+const pino = require("pino");
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const BRIDGE_PORT = parseInt(process.env.WA_BRIDGE_PORT || "3001");
-const PYTHON_EVENTS_URL =
-  process.env.PYTHON_EVENTS_URL ||
-  `http://localhost:${parseInt(process.env.WA_EVENTS_PORT || "3002")}/wa-event`;
+const BRIDGE_PORT  = parseInt(process.env.WA_BRIDGE_PORT || "3001");
+const SESSION_DIR  = process.env.SESSION_DIR || path.join(__dirname, ".baileys_auth");
+const BRIDGE_SECRET = process.env.BRIDGE_SECRET || "";
 
-const SESSION_DIR = path.join(__dirname, ".wwebjs_auth");
+// ── State ─────────────────────────────────────────────────────────────────────
 
-// ── WhatsApp Client ───────────────────────────────────────────────────────────
-
-const client = new Client({
-  authStrategy: new LocalAuth({
-    dataPath: SESSION_DIR,
-    clientId: "leadgen-rosario",
-  }),
-  puppeteer: {
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-accelerated-2d-canvas",
-      "--no-first-run",
-      "--no-zygote",
-      "--disable-gpu",
-    ],
-  },
-  webVersionCache: {
-    type: "remote",
-    remotePath:
-      "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
-  },
-});
-
+let sock        = null;
 let clientReady = false;
+let latestQR    = null;
 
-// ── Event forwarding ──────────────────────────────────────────────────────────
+// ── WhatsApp connection ───────────────────────────────────────────────────────
 
-async function forwardToPython(event) {
-  try {
-    await axios.post(PYTHON_EVENTS_URL, event, {
-      timeout: 5000,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    // Python may not be running — log and continue
-    console.error(
-      `[bridge] Could not forward event to Python: ${err.message}`
-    );
-  }
+async function connectToWhatsApp() {
+  fs.mkdirSync(SESSION_DIR, { recursive: true });
+
+  const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
+  const { version } = await fetchLatestBaileysVersion();
+
+  sock = makeWASocket({
+    version,
+    auth: state,
+    logger: pino({ level: "silent" }),
+    printQRInTerminal: false,
+    browser: ["Binario CRM", "Chrome", "120.0.0"],
+    connectTimeoutMs: 60000,
+    defaultQueryTimeoutMs: 60000,
+  });
+
+  sock.ev.on("creds.update", saveCreds);
+
+  sock.ev.on("connection.update", ({ connection, lastDisconnect, qr }) => {
+    if (qr) {
+      latestQR = qr;
+      console.log(
+        `\n[bridge] QR listo — abrí http://localhost:${BRIDGE_PORT}/qr en el browser\n`
+      );
+      qrcode.generate(qr, { small: true });
+    }
+
+    if (connection === "close") {
+      clientReady = false;
+      const statusCode = lastDisconnect?.error?.output?.statusCode;
+      const loggedOut  = statusCode === DisconnectReason.loggedOut;
+      console.log(
+        `[bridge] Conexión cerrada (código ${statusCode}). ${loggedOut ? "Sesión cerrada — limpiando y reiniciando..." : "Reconectando..."}`
+      );
+      if (loggedOut) {
+        try {
+          fs.readdirSync(SESSION_DIR).forEach((f) =>
+            fs.rmSync(path.join(SESSION_DIR, f), { recursive: true, force: true })
+          );
+        } catch (e) {
+          console.error(`[bridge] No se pudo limpiar la sesión: ${e.message}`);
+        }
+      }
+      setTimeout(connectToWhatsApp, 5000);
+    }
+
+    if (connection === "open") {
+      clientReady = true;
+      latestQR    = null;
+      console.log(`[bridge] WhatsApp conectado y listo en puerto ${BRIDGE_PORT}`);
+    }
+  });
 }
 
-// ── WhatsApp event handlers ───────────────────────────────────────────────────
-
-client.on("qr", (qr) => {
-  console.log("\n[bridge] Scan QR code with WhatsApp:\n");
-  qrcode.generate(qr, { small: true });
-});
-
-client.on("authenticated", () => {
-  console.log("[bridge] Session authenticated");
-});
-
-client.on("ready", () => {
-  clientReady = true;
-  console.log(`[bridge] WhatsApp client ready. Listening on port ${BRIDGE_PORT}`);
-  forwardToPython({ type: "ready", timestamp: new Date().toISOString() });
-});
-
-client.on("disconnected", (reason) => {
-  clientReady = false;
-  console.warn(`[bridge] Disconnected: ${reason}. Restarting...`);
-  forwardToPython({
-    type: "disconnected",
-    reason,
-    timestamp: new Date().toISOString(),
-  });
-  setTimeout(() => client.initialize(), 5000);
-});
-
-client.on("auth_failure", (msg) => {
-  clientReady = false;
-  console.error(`[bridge] Auth failure: ${msg}`);
-  forwardToPython({
-    type: "auth_failure",
-    message: msg,
-    timestamp: new Date().toISOString(),
-  });
-});
-
-client.on("message", async (message) => {
-  // Only forward messages from contacts (not from ourselves)
-  if (message.fromMe) return;
-
-  const chat = await message.getChat().catch(() => null);
-  const contact = await message.getContact().catch(() => null);
-
-  const event = {
-    type: "message",
-    phone: message.from.replace("@c.us", "").replace("@g.us", ""),
-    message: message.body || "",
-    timestamp: new Date(message.timestamp * 1000).toISOString(),
-    chat_id: message.from,
-    is_group: chat?.isGroup || false,
-    contact_name: contact?.pushname || contact?.name || "",
-    has_media: message.hasMedia || false,
-    message_type: message.type,
-  };
-
-  // Skip group messages — we only care about direct replies
-  if (event.is_group) return;
-
-  console.log(
-    `[bridge] Message from ${event.phone}: ${event.message.slice(0, 60)}`
-  );
-
-  await forwardToPython(event);
-});
-
-client.on("message_reaction", async (reaction) => {
-  const event = {
-    type: "reaction",
-    phone: reaction.senderId.replace("@c.us", ""),
-    reaction: reaction.reaction,
-    timestamp: new Date().toISOString(),
-    message_id: reaction.msgId?._serialized || "",
-  };
-
-  console.log(`[bridge] Reaction from ${event.phone}: ${event.reaction}`);
-  await forwardToPython(event);
-});
-
-// ── Express HTTP API (for Python to send messages) ────────────────────────────
+// ── Express HTTP API ──────────────────────────────────────────────────────────
 
 const app = express();
 app.use(express.json());
+
+function requireSecret(req, res, next) {
+  if (!BRIDGE_SECRET) return next();
+  const sent = req.headers["x-bridge-secret"] || req.query.secret || "";
+  if (sent !== BRIDGE_SECRET) return res.status(401).json({ error: "Unauthorized" });
+  next();
+}
 
 app.get("/health", (_req, res) => {
   res.json({ status: clientReady ? "ready" : "not_ready", timestamp: new Date().toISOString() });
 });
 
-/**
- * POST /send
- * Body: { phone: "5493415109798", message: "Hola!" }
- * Sends a WhatsApp message through the active session.
- */
-app.post("/send", async (req, res) => {
-  const { phone, message } = req.body;
-
-  if (!phone || !message) {
-    return res.status(400).json({ error: "phone and message required" });
+app.get("/qr", (_req, res) => {
+  if (clientReady) {
+    return res.send(`<!DOCTYPE html><html><body style="font-family:sans-serif;text-align:center;padding:3rem">
+      <h2 style="color:#25D366">✅ WhatsApp conectado</h2>
+      <p>El bridge está activo y listo.</p>
+    </body></html>`);
   }
-
-  if (!clientReady) {
-    return res.status(503).json({ error: "WhatsApp client not ready" });
+  if (!latestQR) {
+    return res.send(`<!DOCTYPE html><html><head><meta http-equiv="refresh" content="3"></head>
+      <body style="font-family:sans-serif;text-align:center;padding:3rem">
+        <h2>⏳ Iniciando conexión...</h2><p>Esta página se recarga sola.</p>
+      </body></html>`);
   }
+  const qrData = JSON.stringify(latestQR);
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="30">
+  <title>WhatsApp QR — Binario</title>
+  <style>
+    body{font-family:sans-serif;text-align:center;padding:2rem;background:#f5f5f5}
+    #qr{display:inline-block;padding:1rem;background:#fff;border-radius:12px;margin:1.5rem 0}
+    h2{color:#1a1a1a}p{color:#555;font-size:.9rem}
+  </style>
+</head>
+<body>
+  <h2>Escanear con WhatsApp</h2>
+  <p>WhatsApp → Dispositivos vinculados → Vincular dispositivo</p>
+  <div id="qr"></div>
+  <p>Se recarga automáticamente cada 30s</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>new QRCode(document.getElementById("qr"),{text:${qrData},width:280,height:280})</script>
+</body>
+</html>`);
+});
 
-  // Normalize number to WhatsApp chat ID
+app.get("/profile-pic", requireSecret, async (req, res) => {
+  const { phone } = req.query;
+  if (!phone) return res.status(400).json({ error: "phone required" });
+  if (!sock || !clientReady) return res.status(503).json({ error: "WhatsApp not connected" });
+
   const digits = phone.replace(/\D/g, "");
-  const chatId = digits.includes("@") ? digits : `${digits}@c.us`;
+  const jid    = `${digits}@s.whatsapp.net`;
 
   try {
-    await client.sendMessage(chatId, message);
-    console.log(`[bridge] Sent to ${phone}: ${message.slice(0, 60)}`);
+    const url = await sock.profilePictureUrl(jid, "image");
+    res.json({ url });
+  } catch (_) {
+    res.status(404).json({ error: "no profile picture" });
+  }
+});
+
+app.post("/send", requireSecret, async (req, res) => {
+  const { phone, message } = req.body;
+  if (!phone || !message) return res.status(400).json({ error: "phone and message required" });
+  if (!sock || !clientReady) return res.status(503).json({ error: "WhatsApp not connected" });
+
+  const digits = phone.replace(/\D/g, "");
+  const jid    = `${digits}@s.whatsapp.net`;
+
+  try {
+    await sock.sendMessage(jid, { text: message });
+    console.log(`[bridge] Enviado a ${phone}: ${message.slice(0, 60)}`);
     res.json({ ok: true, phone, timestamp: new Date().toISOString() });
   } catch (err) {
-    console.error(`[bridge] Send error: ${err.message}`);
+    console.error(`[bridge] Error al enviar: ${err.message}`);
     res.status(500).json({ error: err.message });
   }
 });
 
-/**
- * POST /send-media
- * Body: { phone, mediaUrl, caption }
- * Sends a media message (image/file).
- */
-app.post("/send-media", async (req, res) => {
+app.post("/send-media", requireSecret, async (req, res) => {
   const { phone, mediaUrl, caption } = req.body;
-
-  if (!phone || !mediaUrl) {
-    return res.status(400).json({ error: "phone and mediaUrl required" });
-  }
-
-  if (!clientReady) {
-    return res.status(503).json({ error: "WhatsApp client not ready" });
-  }
+  if (!phone || !mediaUrl) return res.status(400).json({ error: "phone and mediaUrl required" });
+  if (!sock || !clientReady) return res.status(503).json({ error: "WhatsApp not connected" });
 
   const digits = phone.replace(/\D/g, "");
-  const chatId = `${digits}@c.us`;
+  const jid    = `${digits}@s.whatsapp.net`;
 
   try {
-    const media = await MessageMedia.fromUrl(mediaUrl, { unsafeMime: true });
-    await client.sendMessage(chatId, media, { caption: caption || "" });
+    await sock.sendMessage(jid, { image: { url: mediaUrl }, caption: caption || "" });
     res.json({ ok: true, phone });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -223,21 +185,12 @@ app.post("/send-media", async (req, res) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 
-app.listen(BRIDGE_PORT, () => {
-  console.log(`[bridge] HTTP API listening on http://localhost:${BRIDGE_PORT}`);
+app.listen(BRIDGE_PORT, "0.0.0.0", () => {
+  console.log(`[bridge] HTTP API escuchando en 0.0.0.0:${BRIDGE_PORT}`);
 });
 
-console.log("[bridge] Initializing WhatsApp client...");
-client.initialize();
+console.log("[bridge] Iniciando conexión con WhatsApp...");
+connectToWhatsApp().catch(console.error);
 
-process.on("SIGTERM", async () => {
-  console.log("[bridge] SIGTERM received, shutting down...");
-  await client.destroy();
-  process.exit(0);
-});
-
-process.on("SIGINT", async () => {
-  console.log("[bridge] SIGINT received, shutting down...");
-  await client.destroy();
-  process.exit(0);
-});
+process.on("SIGTERM", async () => { await sock?.end(); process.exit(0); });
+process.on("SIGINT",  async () => { await sock?.end(); process.exit(0); });

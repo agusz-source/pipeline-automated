@@ -10,7 +10,7 @@ from pathlib import Path
 
 from sqlalchemy import (
     Boolean, Column, Date, DateTime, Float, ForeignKey,
-    Integer, String, Text, create_engine, event
+    Integer, String, Text, create_engine, event, text
 )
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, scoped_session
 
@@ -107,6 +107,10 @@ class Lead(Base):
     enviado_links     = Column(Boolean, default=False)
     fecha_envio_links = Column(DateTime)
 
+    # Follow-ups
+    followup_stage    = Column(Integer, default=0)
+    followup_sent_at  = Column(DateTime)
+
     # CRM
     fecha_entrega                   = Column(Date)
     fecha_renovacion_web            = Column(Date)
@@ -158,6 +162,8 @@ class Lead(Base):
             "deploy_logs": self.deploy_logs,
             "enviado_links": self.enviado_links,
             "fecha_envio_links": _d(self.fecha_envio_links),
+            "followup_stage": self.followup_stage or 0,
+            "followup_sent_at": _d(self.followup_sent_at),
             "fecha_entrega": _d(self.fecha_entrega),
             "fecha_renovacion_web": _d(self.fecha_renovacion_web),
             "fecha_renovacion_hosting": _d(self.fecha_renovacion_hosting),
@@ -329,7 +335,21 @@ class Finanza(Base):
 
 def init_db():
     Base.metadata.create_all(engine)
+    _migrate_followup_columns()
     _seed_templates()
+
+
+def _migrate_followup_columns():
+    with engine.connect() as conn:
+        for col, typedef in [
+            ("followup_stage", "INTEGER DEFAULT 0"),
+            ("followup_sent_at", "DATETIME"),
+        ]:
+            try:
+                conn.execute(text(f"ALTER TABLE leads ADD COLUMN {col} {typedef}"))
+                conn.commit()
+            except Exception:
+                pass  # Column already exists
 
 
 def _seed_templates():

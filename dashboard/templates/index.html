@@ -3,61 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Binario — Dashboard</title>
+  <title>Binario CRM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,450;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
 <body>
 
-<!-- ── Sidebar ──────────────────────────────────────────── -->
+<!-- ── Sidebar ─────────────────────────────────── -->
 <aside class="sidebar">
   <div class="logo">
     <div class="logo-mark">B</div>
     <div>
       <div class="logo-name">Binario</div>
-      <span class="logo-sub">Websites</span>
+      <span class="logo-sub">CRM</span>
     </div>
   </div>
 
   <nav class="nav">
-    <a class="nav-item active" data-page="dashboard" onclick="navigate('dashboard', this)">
-      <span class="nav-icon">◎</span> Dashboard
+    <a class="nav-item active" data-page="dashboard" onclick="navigate('dashboard',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+      Dashboard
     </a>
-    <a class="nav-item" data-page="pipeline" onclick="navigate('pipeline', this)">
-      <span class="nav-icon">⚡</span> Pipeline
+
+    <div class="nav-section">CRM</div>
+
+    <a class="nav-item" data-page="clientes" onclick="navigate('clientes',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      Clientes
     </a>
-    <a class="nav-item" data-page="kanban" onclick="navigate('kanban', this)">
-      <span class="nav-icon">⬛</span> Kanban
+
+    <a class="nav-item" data-page="leads" onclick="navigate('leads',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      Leads
     </a>
-    <a class="nav-item" data-page="leads" onclick="navigate('leads', this)">
-      <span class="nav-icon">◉</span> Leads
-    </a>
-    <a class="nav-item" data-page="websites" onclick="navigate('websites', this)">
-      <span class="nav-icon">⬡</span> Websites
-    </a>
-    <a class="nav-item" data-page="analytics" onclick="navigate('analytics', this)">
-      <span class="nav-icon">▲</span> Analytics
-    </a>
-    <a class="nav-item" data-page="finanzas" onclick="navigate('finanzas', this)">
-      <span class="nav-icon">◈</span> Finanzas
-    </a>
-    <a class="nav-item" data-page="renovaciones" onclick="navigate('renovaciones', this)">
-      <span class="nav-icon">◷</span> Renovaciones
+
+    <a class="nav-item" data-page="mantenimiento" onclick="navigate('mantenimiento',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
+      Servicios
       <span class="nav-badge" id="renewal-badge" style="display:none"></span>
     </a>
-    <a class="nav-item" data-page="templates" onclick="navigate('templates', this)">
-      <span class="nav-icon">☰</span> Templates
+
+    <a class="nav-item" data-page="seguimientos" onclick="navigate('seguimientos',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
+      Seguimientos
     </a>
-    <a class="nav-item" data-page="settings" onclick="navigate('settings', this)">
-      <span class="nav-icon">⚙</span> Ajustes
+
+    <div class="nav-section">Automatización</div>
+
+    <a class="nav-item" data-page="pipeline" onclick="navigate('pipeline',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+      Pipeline
+    </a>
+
+    <a class="nav-item" data-page="websites" onclick="navigate('websites',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+      Websites
+    </a>
+
+    <div class="nav-section">Negocio</div>
+
+    <a class="nav-item" data-page="analytics" onclick="navigate('analytics',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+      Analytics
+    </a>
+
+    <a class="nav-item" data-page="finanzas" onclick="navigate('finanzas',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+      Finanzas
+    </a>
+
+    <div class="nav-section">Config</div>
+
+    <a class="nav-item" data-page="templates" onclick="navigate('templates',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+      Templates
+    </a>
+
+    <a class="nav-item" data-page="settings" onclick="navigate('settings',this)">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      Ajustes
     </a>
   </nav>
 
   <div class="sidebar-bottom">
+    <div class="dolar-widget">
+      <span class="dolar-label">USD oficial</span>
+      <span class="dolar-value" id="dolar-value">—</span>
+    </div>
     <div class="system-status">
       <span class="status-dot" id="ws-dot"></span>
       <span id="ws-label">Conectando...</span>
@@ -65,134 +101,263 @@
   </div>
 </aside>
 
-<!-- ── Main ─────────────────────────────────────────────── -->
+<!-- ── Main ──────────────────────────────────────────── -->
 <main class="main">
 
   <!-- Header -->
   <header class="header">
-    <div class="flex items-center gap-12">
+    <div style="display:flex;align-items:center;gap:12px">
       <div class="page-title" id="header-title">Dashboard</div>
       <div id="active-jobs-indicator"></div>
     </div>
     <div class="header-actions">
-      <div class="search-bar" id="global-search" style="display:none">
-        <span class="search-icon">⌕</span>
-        <input type="text" placeholder="Buscar lead..." id="global-search-input" oninput="globalSearch(this.value)">
+      <div class="search-bar" id="global-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:var(--text-3)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar clientes, leads, telefono..." id="global-search-input" oninput="globalSearch(this.value)">
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="refresh()">↻ Actualizar</button>
+      <button class="btn btn-ghost btn-sm" onclick="refresh()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Actualizar
+      </button>
       <div id="header-cta"></div>
     </div>
   </header>
 
   <div class="content" id="content">
 
-    <!-- ── Dashboard ──────────────────────────────────── -->
+    <!-- ── Dashboard ─────────────────────────────── -->
     <div id="page-dashboard" class="page active">
+
+      <!-- Subheader: date + filters + quick actions -->
+      <div class="dash-subheader">
+        <div class="dash-subheader-left">
+          <div class="dash-date" id="dash-date"></div>
+          <div class="date-filter-pills">
+            <button class="dfp active" data-filter="month" onclick="setDashFilter(this,'month')">Este mes</button>
+            <button class="dfp" data-filter="week" onclick="setDashFilter(this,'week')">Esta semana</button>
+            <button class="dfp" data-filter="30d" onclick="setDashFilter(this,'30d')">30 dias</button>
+          </div>
+        </div>
+        <div class="dash-quick-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openNewLeadModal()">+ Lead</button>
+          <button class="btn btn-ghost btn-sm" onclick="openNewLeadModal()">+ Cliente</button>
+          <button class="btn btn-ghost btn-sm" onclick="openGenerateWebsModal()">Generar Demo</button>
+          <button class="btn btn-ghost btn-sm" onclick="openScrapeModal()">Importar Leads</button>
+          <button class="btn btn-primary btn-sm" onclick="navigate('pipeline', document.querySelector('[data-page=pipeline]'))">Iniciar campaña</button>
+        </div>
+      </div>
+
+      <!-- KPI row -->
       <div class="kpi-grid" id="kpi-grid">
-        <div class="kpi skeleton" style="height:84px"></div>
-        <div class="kpi skeleton" style="height:84px"></div>
-        <div class="kpi skeleton" style="height:84px"></div>
-        <div class="kpi skeleton" style="height:84px"></div>
+        <div class="kpi skeleton" style="height:90px"></div>
+        <div class="kpi skeleton" style="height:90px"></div>
+        <div class="kpi skeleton" style="height:90px"></div>
+        <div class="kpi skeleton" style="height:90px"></div>
       </div>
 
-      <div class="dash-grid">
+      <!-- Work row: tasks + activity -->
+      <div class="dash-work-row">
         <div class="card">
-          <div class="card-title">Embudo de conversión</div>
-          <div id="funnel-bars" class="funnel-bars"></div>
+          <div class="dash-panel-header">
+            <div class="card-title" style="margin:0">Tareas de hoy</div>
+            <span class="badge-count" id="tasks-badge">0</span>
+          </div>
+          <div id="today-tasks">
+            <div class="skel-line"></div>
+            <div class="skel-line" style="width:80%"></div>
+            <div class="skel-line" style="width:65%"></div>
+          </div>
         </div>
         <div class="card">
-          <div class="card-title">Leads por etapa</div>
-          <div class="chart-container"><canvas id="stage-chart"></canvas></div>
-        </div>
-        <div class="card full">
-          <div class="card-title">Leads por categoría</div>
-          <div class="table-wrap" id="cat-table-wrap">
-            <table>
-              <thead><tr>
-                <th>Categoría</th><th>Total</th><th>Enviados</th>
-                <th>Interesados</th><th>Convertidos</th><th>% Interés</th>
-              </tr></thead>
-              <tbody id="cat-table-body"></tbody>
-            </table>
+          <div class="card-title">Actividad reciente</div>
+          <div id="activity-feed">
+            <div class="skel-line"></div>
+            <div class="skel-line" style="width:75%"></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- ── Pipeline ───────────────────────────────────── -->
-    <div id="page-pipeline" class="page">
-      <div class="pipeline-grid" id="pipeline-stage-cards"></div>
-
-      <div class="log-panel" id="log-panel">
-        <div class="log-panel-header">
-          <div class="log-panel-title">
-            <span>Terminal de logs</span>
-            <span id="log-job-label" style="color:var(--text-3);font-weight:400"></span>
-          </div>
-          <div class="flex gap-8">
-            <button class="btn btn-ghost btn-sm" onclick="clearLogs()">Limpiar</button>
-            <label class="flex items-center gap-8 text-sm text-muted">
-              <input type="checkbox" id="log-autoscroll" checked> Auto-scroll
-            </label>
-          </div>
+      <!-- Analytics row: funnel + stages + insights -->
+      <div class="dash-analytics-row">
+        <div class="card">
+          <div class="card-title">Embudo de conversion</div>
+          <div id="dash-funnel-v"></div>
         </div>
-        <div class="log-entries" id="log-entries">
-          <div class="empty">
-            <div class="empty-icon">⬝</div>
-            <div class="empty-msg">Iniciá una etapa para ver los logs en tiempo real</div>
-          </div>
+        <div class="card">
+          <div class="card-title">Pipeline por etapa</div>
+          <div id="dash-stage-cards"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Alertas del negocio</div>
+          <div id="dash-insights"></div>
         </div>
       </div>
-    </div>
 
-    <!-- ── Kanban ──────────────────────────────────────── -->
-    <div id="page-kanban" class="page">
-      <div class="kanban-wrap" id="kanban-wrap">
-        <div class="kanban" id="kanban-board"></div>
+      <!-- Category analytics table -->
+      <div class="card" style="margin-top:14px">
+        <div class="dash-panel-header" style="margin-bottom:14px">
+          <div class="card-title" style="margin:0">Categorias</div>
+          <span style="font-size:11px;color:var(--text-4)">Clic en columna para ordenar</span>
+        </div>
+        <div class="table-wrap">
+          <table id="cat-analytics-table">
+            <thead><tr>
+              <th onclick="sortCatTable('nombre')" style="cursor:pointer">Categoria</th>
+              <th onclick="sortCatTable('total')" style="cursor:pointer">Leads</th>
+              <th onclick="sortCatTable('enviados')" style="cursor:pointer">Enviados</th>
+              <th onclick="sortCatTable('respondieron')" style="cursor:pointer">Respuestas</th>
+              <th onclick="sortCatTable('interesados')" style="cursor:pointer">Interesados</th>
+              <th onclick="sortCatTable('convertidos')" style="cursor:pointer">Clientes</th>
+              <th onclick="sortCatTable('tasa_interes')" style="cursor:pointer">Conv. %</th>
+              <th onclick="sortCatTable('revenue')" style="cursor:pointer">Revenue</th>
+            </tr></thead>
+            <tbody id="cat-analytics-body"></tbody>
+          </table>
+        </div>
       </div>
+
     </div>
 
-    <!-- ── Leads ──────────────────────────────────────── -->
+    <!-- ── Clientes ──────────────────────────────── -->
+    <div id="page-clientes" class="page">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <div style="font-size:13px;color:var(--text-3)" id="clientes-count"></div>
+        <button class="btn btn-primary btn-sm ml-auto" onclick="openNewLeadModal()">+ Nuevo cliente</button>
+      </div>
+      <div id="clientes-grid"></div>
+    </div>
+
+    <!-- ── Leads ──────────────────────────────────── -->
     <div id="page-leads" class="page">
-      <div class="flex items-center gap-12" style="margin-bottom:16px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
         <div class="search-bar" style="flex:1;min-width:200px">
-          <span class="search-icon">⌕</span>
-          <input type="text" placeholder="Buscar por nombre, teléfono, categoría..." id="leads-search" oninput="debounce(loadLeads, 300)()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:var(--text-3)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Buscar por nombre, telefono, categoria..." id="leads-search" oninput="debounce(loadLeads,300)()">
         </div>
         <div class="filter-pills" id="stage-pills"></div>
         <button class="btn btn-primary btn-sm" onclick="openNewLeadModal()">+ Nuevo lead</button>
       </div>
-
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th onclick="sortLeads('nombre')">Nombre ↕</th>
-              <th onclick="sortLeads('categoria')">Categoría ↕</th>
-              <th>Teléfono</th>
-              <th onclick="sortLeads('score')">Score ↕</th>
+              <th onclick="sortLeads('nombre')">Nombre</th>
+              <th onclick="sortLeads('categoria')">Categoria</th>
+              <th>Telefono</th>
+              <th onclick="sortLeads('score')">Score</th>
               <th>Etapa</th>
-              <th>Estado</th>
-              <th onclick="sortLeads('created_at')">Fecha ↕</th>
+              <th>Respuesta</th>
+              <th onclick="sortLeads('created_at')">Fecha</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="leads-body"></tbody>
         </table>
       </div>
-
-      <div class="flex items-center gap-12" style="margin-top:12px;justify-content:space-between">
-        <span id="leads-count" class="text-sm text-muted"></span>
-        <div class="flex gap-8" id="leads-pagination"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px;justify-content:space-between">
+        <span id="leads-count" style="font-size:12px;color:var(--text-3)"></span>
+        <div style="display:flex;gap:8px" id="leads-pagination"></div>
       </div>
     </div>
 
-    <!-- ── Websites ────────────────────────────────────── -->
+    <!-- ── Servicios ──────────────────────────────── -->
+    <div id="page-mantenimiento" class="page">
+      <div id="serv-summary" style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap"></div>
+      <div id="mantenimiento-list"></div>
+    </div>
+
+    <!-- ── Pipeline ──────────────────────────────── -->
+    <div id="page-pipeline" class="page">
+      <div class="pipeline-grid" id="pipeline-stage-cards"></div>
+      <div class="log-panel" id="log-panel">
+        <div class="log-panel-header">
+          <div class="log-panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Logs en vivo
+            <span id="log-job-label" style="color:var(--text-3);font-weight:400;text-transform:none;letter-spacing:0"></span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-ghost btn-sm" onclick="clearLogs()">Limpiar</button>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2);cursor:pointer">
+              <input type="checkbox" id="log-autoscroll" checked> Auto-scroll
+            </label>
+          </div>
+        </div>
+        <div class="log-entries" id="log-entries">
+          <div class="empty">
+            <div class="empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28" style="opacity:.3"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            </div>
+            <div class="empty-msg">Inicia una etapa para ver logs en tiempo real</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flujo (embedded) -->
+      <div style="margin-top:14px">
+        <div class="section-title" style="margin-bottom:10px">Flujo del pipeline</div>
+        <div class="flujo-canvas" id="flujo-canvas">
+          <svg class="flujo-edges" id="flujo-edges"></svg>
+          <div class="flujo-nodes" id="flujo-nodes"></div>
+        </div>
+        <div class="flujo-legend">
+          <div class="flujo-legend-item"><span class="flujo-legend-dot idle"></span>Inactivo</div>
+          <div class="flujo-legend-item"><span class="flujo-legend-dot running"></span>Activo</div>
+          <div class="flujo-legend-item"><span class="flujo-legend-dot completed"></span>Completado</div>
+          <div class="flujo-legend-item"><span class="flujo-legend-dot error"></span>Error</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Seguimientos ──────────────────────────── -->
+    <div id="page-seguimientos" class="page">
+
+      <!-- Message selector -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Seleccionar mensaje de seguimiento</div>
+        <div id="followup-msg-cards" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+      </div>
+
+      <!-- Lead selection -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+          <div class="search-bar" style="flex:1;min-width:200px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:var(--text-3)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Buscar por nombre, telefono..." id="followup-search" oninput="filterFollowupCandidates(this.value)">
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="selectAllFollowup(true)">Seleccionar todos</button>
+          <button class="btn btn-ghost btn-sm" onclick="selectAllFollowup(false)">Deseleccionar</button>
+          <span style="font-size:12px;color:var(--text-3);margin-left:auto" id="followup-sel-count">0 seleccionados</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox" id="followup-check-all" onchange="selectAllFollowup(this.checked)"></th>
+                <th>Nombre</th>
+                <th>Telefono</th>
+                <th>Categoria</th>
+                <th>Enviado</th>
+                <th>Respuesta</th>
+                <th>URL</th>
+                <th>Seguimiento</th>
+              </tr>
+            </thead>
+            <tbody id="followup-table-body"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:14px">
+          <button id="followup-send-btn" class="btn btn-primary" onclick="startFollowup()">Enviar seguimientos</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Websites ───────────────────────────────── -->
     <div id="page-websites" class="page">
       <div class="websites-grid" id="websites-grid"></div>
     </div>
 
-    <!-- ── Analytics ──────────────────────────────────── -->
+    <!-- ── Analytics ─────────────────────────────── -->
     <div id="page-analytics" class="page">
       <div class="kpi-grid" id="analytics-kpi-grid"></div>
       <div class="dash-grid">
@@ -205,19 +370,19 @@
           <div class="chart-container"><canvas id="responses-chart"></canvas></div>
         </div>
         <div class="card full">
-          <div class="card-title">Nuevos leads (últimos 30 días)</div>
+          <div class="card-title">Nuevos leads — ultimos 30 dias</div>
           <div class="chart-container" style="height:180px"><canvas id="timeline-chart"></canvas></div>
         </div>
       </div>
     </div>
 
-    <!-- ── Finanzas ────────────────────────────────────── -->
+    <!-- ── Finanzas ───────────────────────────────── -->
     <div id="page-finanzas" class="page">
       <div class="kpi-grid" id="fin-kpi-grid"></div>
       <div class="card">
-        <div class="flex items-center gap-12" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
           <div class="card-title" style="margin:0">Pagos</div>
-          <button class="btn btn-primary btn-sm ml-auto" onclick="openPaymentModal()">+ Registrar pago</button>
+          <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openPaymentModal()">+ Registrar pago</button>
         </div>
         <div class="table-wrap">
           <table>
@@ -231,21 +396,21 @@
       </div>
     </div>
 
-    <!-- ── Renovaciones ────────────────────────────────── -->
+    <!-- ── Renovaciones ──────────────────────────── -->
     <div id="page-renovaciones" class="page">
       <div id="renewal-sections"></div>
     </div>
 
-    <!-- ── Templates ──────────────────────────────────── -->
+    <!-- ── Templates ─────────────────────────────── -->
     <div id="page-templates" class="page">
-      <div class="flex items-center gap-12" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
         <div class="section-title" style="margin:0">Templates de mensajes</div>
-        <button class="btn btn-primary btn-sm ml-auto" onclick="openTemplateModal()">+ Nuevo template</button>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openTemplateModal()">+ Nuevo template</button>
       </div>
       <div id="templates-list"></div>
     </div>
 
-    <!-- ── Settings ───────────────────────────────────── -->
+    <!-- ── Settings ──────────────────────────────── -->
     <div id="page-settings" class="page">
       <div class="card">
         <div class="card-title">Base de datos</div>
@@ -253,9 +418,9 @@
           <div class="settings-row">
             <div>
               <div class="settings-label">Migrar desde estado.csv</div>
-              <div class="settings-desc">Importa todos los leads del CSV a SQLite. Seguro — no duplica.</div>
+              <div class="settings-desc">Importa todos los leads del CSV a SQLite. Seguro, no duplica.</div>
             </div>
-            <button class="btn btn-ghost btn-sm settings-control" onclick="runMigration()">Migrar ahora</button>
+            <button class="btn btn-ghost btn-sm settings-control" onclick="runMigration()">Migrar</button>
           </div>
           <div class="settings-row">
             <div>
@@ -266,23 +431,22 @@
           </div>
         </div>
       </div>
-
-      <div class="card" style="margin-top:16px">
-        <div class="card-title">Configuración de pipeline</div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">Pipeline</div>
         <div class="settings-section" id="config-fields"></div>
-        <button class="btn btn-primary btn-sm" onclick="saveConfig()">Guardar cambios</button>
+        <button class="btn btn-primary btn-sm" onclick="saveConfig()">Guardar</button>
       </div>
     </div>
 
   </div><!-- /content -->
 </main>
 
-<!-- ── Lead Modal ──────────────────────────────────────── -->
+<!-- ── Lead Modal ─────────────────────────────────── -->
 <div class="modal-backdrop" id="lead-modal">
   <div class="modal" style="width:min(700px,95vw)">
     <div class="modal-header">
       <div class="modal-title" id="lead-modal-title">Lead</div>
-      <button class="modal-close" onclick="closeModal('lead-modal')">✕</button>
+      <button class="modal-close" onclick="closeModal('lead-modal')">&#10005;</button>
     </div>
     <div class="modal-body" id="lead-modal-body"></div>
     <div class="modal-footer">
@@ -292,24 +456,28 @@
   </div>
 </div>
 
-<!-- ── New Lead Modal ──────────────────────────────────── -->
+<!-- ── New Lead Modal ─────────────────────────────── -->
 <div class="modal-backdrop" id="new-lead-modal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Nuevo lead</div>
-      <button class="modal-close" onclick="closeModal('new-lead-modal')">✕</button>
+      <div class="modal-title">Nuevo lead / cliente</div>
+      <button class="modal-close" onclick="closeModal('new-lead-modal')">&#10005;</button>
     </div>
     <div class="modal-body">
       <div class="form-row">
         <div class="field"><label>Nombre *</label><input type="text" id="nl-nombre"></div>
-        <div class="field"><label>Teléfono *</label><input type="text" id="nl-telefono"></div>
+        <div class="field"><label>Telefono *</label><input type="text" id="nl-telefono"></div>
       </div>
       <div class="form-row">
-        <div class="field"><label>Categoría</label><input type="text" id="nl-categoria"></div>
+        <div class="field"><label>Categoria</label><input type="text" id="nl-categoria"></div>
         <div class="field"><label>Ciudad</label><input type="text" id="nl-ciudad" value="Rosario"></div>
       </div>
       <div class="form-row full">
-        <div class="field"><label>Dirección</label><input type="text" id="nl-direccion"></div>
+        <div class="field"><label>Direccion</label><input type="text" id="nl-direccion"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Fecha de entrega (si es cliente)</label><input type="date" id="nl-fecha-entrega"></div>
+        <div class="field"><label>URL del sitio</label><input type="text" id="nl-live-url" placeholder="https://..."></div>
       </div>
       <div class="form-row full">
         <div class="field"><label>Notas</label><textarea id="nl-notas" rows="3"></textarea></div>
@@ -317,22 +485,122 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('new-lead-modal')">Cancelar</button>
-      <button class="btn btn-primary" onclick="createLead()">Crear lead</button>
+      <button class="btn btn-primary" onclick="createLead()">Crear</button>
     </div>
   </div>
 </div>
 
-<!-- ── Payment Modal ──────────────────────────────────── -->
+<!-- ── Mantenimiento Edit Modal ───────────────────── -->
+<div class="modal-backdrop" id="mant-modal">
+  <div class="modal" style="width:min(520px,95vw)">
+    <div class="modal-header">
+      <div class="modal-title" id="mant-modal-title">Servicios</div>
+      <button class="modal-close" onclick="closeModal('mant-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="field">
+          <label>Renovacion Web</label>
+          <input type="date" id="mant-renov-web">
+        </div>
+        <div class="field">
+          <label>Renovacion Hosting</label>
+          <input type="date" id="mant-renov-hosting">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Mantenimiento Mensual (proximo cobro)</label>
+          <input type="date" id="mant-renov-mant">
+        </div>
+        <div class="field">
+          <label>URL del sitio</label>
+          <input type="text" id="mant-live-url" placeholder="https://...">
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Notas</label><textarea id="mant-notas" rows="3"></textarea></div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:8px">Quitar servicio = dejar la fecha en blanco</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('mant-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveMantModal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Generate Webs Selection Modal ─────────────── -->
+<div class="modal-backdrop" id="gen-webs-modal">
+  <div class="modal" style="width:min(640px,95vw)">
+    <div class="modal-header">
+      <div class="modal-title">Generar webs</div>
+      <button class="modal-close" onclick="closeModal('gen-webs-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <input
+        id="gen-webs-search"
+        type="text"
+        placeholder="Buscar por nombre o teléfono..."
+        oninput="filterGenWebsCandidates(this.value)"
+        style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-hover);color:var(--text-1);font-size:13px;outline:none;margin-bottom:12px"
+      >
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <button class="btn btn-ghost btn-sm" onclick="selectAllCandidates(true)">Seleccionar todos</button>
+        <button class="btn btn-ghost btn-sm" onclick="selectAllCandidates(false)">Deseleccionar</button>
+        <span style="font-size:12px;color:var(--text-3);margin-left:auto" id="gen-webs-sel-count">0 seleccionados</span>
+      </div>
+      <div id="gen-webs-candidates" style="max-height:340px;overflow-y:auto"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('gen-webs-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="startGenerateWebs()">Generar seleccionados</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Send Links Modal ──────────────────────────── -->
+<div class="modal-backdrop" id="send-links-modal">
+  <div class="modal" style="width:min(640px,95vw)">
+    <div class="modal-header">
+      <div class="modal-title">Enviar links</div>
+      <button class="modal-close" onclick="closeModal('send-links-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <input
+        id="send-links-search"
+        type="text"
+        placeholder="Buscar por nombre o teléfono..."
+        oninput="filterSendLinksCandidates(this.value)"
+        style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-hover);color:var(--text-1);font-size:13px;outline:none;margin-bottom:12px"
+      >
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <button class="btn btn-ghost btn-sm" onclick="selectAllSendLinks(true)">Seleccionar todos</button>
+        <button class="btn btn-ghost btn-sm" onclick="selectAllSendLinks(false)">Deseleccionar</button>
+        <span style="font-size:12px;color:var(--text-3);margin-left:auto" id="send-links-sel-count">0 seleccionados</span>
+      </div>
+      <div id="send-links-candidates" style="max-height:340px;overflow-y:auto"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('send-links-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="startSendLinks()">Enviar seleccionados</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Payment Modal ─────────────────────────────── -->
 <div class="modal-backdrop" id="payment-modal">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">Registrar pago</div>
-      <button class="modal-close" onclick="closeModal('payment-modal')">✕</button>
+      <button class="modal-close" onclick="closeModal('payment-modal')">&#10005;</button>
     </div>
     <div class="modal-body">
       <div class="form-row">
         <div class="field"><label>Nombre</label><input type="text" id="p-nombre"></div>
-        <div class="field"><label>Teléfono</label><input type="text" id="p-telefono"></div>
+        <div class="field"><label>Telefono</label><input type="text" id="p-telefono"></div>
       </div>
       <div class="form-row">
         <div class="field"><label>Monto</label><input type="number" id="p-monto" min="0"></div>
@@ -364,12 +632,48 @@
   </div>
 </div>
 
-<!-- ── Template Modal ──────────────────────────────────── -->
+<!-- ── Edit Pago Modal ───────────────────────────── -->
+<div class="modal-backdrop" id="edit-pago-modal">
+  <div class="modal" style="width:min(480px,95vw)">
+    <div class="modal-header">
+      <div class="modal-title" id="edit-pago-title">Editar pago</div>
+      <button class="modal-close" onclick="closeModal('edit-pago-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ep-id">
+      <div class="form-row">
+        <div class="field"><label id="ep-monto-label">Monto cobrado</label><input type="number" id="ep-monto" min="0" step="0.01"></div>
+        <div class="field"><label>Moneda</label>
+          <select id="ep-moneda"><option value="ARS">ARS</option><option value="USD">USD</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Estado</label>
+          <select id="ep-estado">
+            <option value="pendiente">Pendiente</option>
+            <option value="parcial">Parcial</option>
+            <option value="pagado">Pagado</option>
+          </select>
+        </div>
+        <div class="field"><label>Fecha</label><input type="date" id="ep-fecha"></div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Notas</label><textarea id="ep-notas" rows="2"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('edit-pago-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditPago()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Template Modal ────────────────────────────── -->
 <div class="modal-backdrop" id="template-modal">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="template-modal-title">Template</div>
-      <button class="modal-close" onclick="closeModal('template-modal')">✕</button>
+      <button class="modal-close" onclick="closeModal('template-modal')">&#10005;</button>
     </div>
     <div class="modal-body">
       <div class="form-row full">
@@ -379,7 +683,7 @@
         <div class="field"><label>Tipo</label>
           <select id="t-tipo">
             <option value="outreach">Outreach inicial</option>
-            <option value="link">Envío de link</option>
+            <option value="link">Envio de link</option>
             <option value="followup">Follow-up</option>
           </select>
         </div>
@@ -403,9 +707,69 @@
   </div>
 </div>
 
-<!-- ── Toast container ─────────────────────────────────── -->
-<div class="toast-container" id="toast-container"></div>
+<!-- ── Scrape Niche Modal ─────────────────────────── -->
+<div class="modal-backdrop" id="scrape-modal">
+  <div class="modal" style="width:min(520px,95vw)">
+    <div class="modal-header">
+      <div class="modal-title">Configurar scraping</div>
+      <button class="modal-close" onclick="closeModal('scrape-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
 
-<script src="/static/script.js"></script>
+      <!-- Nichos -->
+      <div class="form-row full">
+        <div class="field">
+          <label>Nichos a buscar</label>
+          <div id="scrape-niche-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px"></div>
+        </div>
+      </div>
+
+      <!-- Cuenta Apify -->
+      <div class="form-row full" style="margin-top:14px">
+        <div class="field">
+          <label>Cuenta Apify</label>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button class="pill scrape-acct-btn active" data-acct="both"    onclick="setScrapeAccount('both',this)">Ambas</button>
+            <button class="pill scrape-acct-btn"        data-acct="1"        onclick="setScrapeAccount('1',this)">Cuenta 1</button>
+            <button class="pill scrape-acct-btn"        data-acct="2"        onclick="setScrapeAccount('2',this)">Cuenta 2</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Query personalizada -->
+      <div class="form-row full" style="margin-top:14px">
+        <div class="field">
+          <label>Busqueda personalizada</label>
+          <input type="text" id="scrape-custom-query" placeholder="ej: veterinarias Rosario Santa Fe" oninput="updateScrapePreview()">
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:var(--r-md);border:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Queries a ejecutar</div>
+        <div id="scrape-queries-preview" style="font-family:var(--mono);font-size:11px;color:var(--text-2);display:flex;flex-direction:column;gap:3px"></div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('scrape-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="startScrapeWithConfig()">Iniciar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Site Preview Modal ─────────────────────────────── -->
+<div class="modal-backdrop" id="site-preview-modal">
+  <div class="modal" style="width:min(900px,96vw);height:min(680px,90vh);display:flex;flex-direction:column">
+    <div class="modal-header" style="flex-shrink:0">
+      <a id="site-preview-link" href="#" target="_blank" class="modal-title" style="font-family:var(--mono);font-size:13px;color:var(--accent);text-decoration:none;word-break:break-all"></a>
+      <button class="modal-close" onclick="closeModal('site-preview-modal');document.getElementById('site-preview-iframe').src=''">&#10005;</button>
+    </div>
+    <iframe id="site-preview-iframe" src="" style="flex:1;border:none;border-radius:0 0 var(--r-lg) var(--r-lg);background:var(--bg)" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="/static/script.js?v=14"></script>
 </body>
 </html>
